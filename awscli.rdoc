@@ -1,0 +1,5 @@
+= awscli
+
+Generate this with
+    awscli rdoc
+After you have described your command line interface

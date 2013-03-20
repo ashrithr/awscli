@@ -1,0 +1,6 @@
+= awscli
+
+Describe your project here
+
+:include:awscli.rdoc
+
