@@ -1,23 +1,23 @@
 module Awscli
   class Connection
-    # require 'awscli/errors'
-    # require 'awscli/helper'
+    require 'awscli/errors'
+    require 'awscli/helper'
 
     def initialize
       #load env variable AWSCLI_CONFIG_FILE
       @@aws_config_file = ENV['AWSCLI_CONFIG_FILE']
       unless !@@aws_config_file.nil?
-        puts "Cannot find config file environment variable".color :red
+        puts "Cannot find config file environment variable"
         Awscli::Errors.missing_environment_variable
       end
       @@aws_config_file_path = File.expand_path(@@aws_config_file)
       unless File.exist?(@@aws_config_file_path)
-        puts "Cannot locate file #{@@aws_config_file}".color :red
+        puts "Cannot locate file #{@@aws_config_file}"
         Awscli::Errors.missing_config_file
       end
       @@config = YAML.load(File.read(@@aws_config_file_path))
       unless @@config.kind_of?(Hash)
-        puts "Parse Error".color :red
+        puts "Parse Error"
         Awscli::Errors.missing_credentials
       end
     end

@@ -4,12 +4,12 @@ module AwsCli
   class Cli < ::Thor
 
     default_task :help_banner   #if no option is passed call help_banner task
-    class_option :config, :banner => "PATH", :type => :string,
-                 :desc => 'Configuration file, accepts ENV $AWSCLI_CONFIG_FILE',
-                 :default => ENV['AWSCLI_CONFIG_FILE'] || "~/.awscli.yml"
+    # class_option :config, :banner => "PATH", :type => :string,
+    #              :desc => 'Configuration file, accepts ENV $AWSCLI_CONFIG_FILE',
+    #              :default => ENV['AWSCLI_CONFIG_FILE'] || "~/.awscli.yml"
+
     method_option :rf, :banner => "NUM", :type => :numeric, :desc => "repeat greering X times", :default => 3
     desc "foo", "prints foo"
-
     long_desc <<-LONGDESC
       Prints out foo's method long description
     LONGDESC

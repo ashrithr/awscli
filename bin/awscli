@@ -10,4 +10,12 @@ require "rubygems" if RUBY_VERSION < "1.9" #ruby 1.9 doesnt need this
 require "awscli"
 
 #Start the cli
-AwsCli::Cli.start
+begin
+  AwsCli::Cli.start
+rescue Interrupt
+  puts "Caught Interrupt, Exiting..."
+rescue Excon::Errors::SocketError => e
+  puts "Error Establishing Connection to AWS, #{e}"
+rescue ArgumentError => e
+  puts "Cannot recognize the argument passed, #{e}"
+end
