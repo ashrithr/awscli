@@ -5,6 +5,8 @@ module AwsCli
     require 'awscli/ec2'
     class Ec2 < Thor
 
+      class_option :region, :type => :string, :desc => "region to connect to", :default => 'us-west-1'
+
       method_option :dr, :type => :numeric, :desc => "repeat greeting X times", :default => 3
       desc "describe_ec2_instances", "list instances"
       def describe_ec2_instances
@@ -13,7 +15,7 @@ module AwsCli
 
       private
 
-      def ec2_object
+      def create_ec2_object
         puts "ec2 Establishing Connetion..."
         $ec2_conn = Awscli::Connection.new.request_ec2
         puts $ec2_conn

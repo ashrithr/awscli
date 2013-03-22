@@ -1,6 +1,5 @@
 = awscli
 
-Describe your project here
+Amazon Web Service Command Line Interface
 
-:include:awscli.rdoc
-
+WIP
