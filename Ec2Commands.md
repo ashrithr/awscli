@@ -39,11 +39,11 @@ ec2-reset-snapshot-attribute
 
 EIP (awscli ec2 eip)
 ===
-ec2-allocate-address
-ec2-associate-address
-ec2-describe-addresses
-ec2-disassociate-address
-ec2-release-address
+*ec2-allocate-address
+*ec2-associate-address
+*ec2-describe-addresses
+*ec2-disassociate-address
+*ec2-release-address
 
 Instances (awscli ec2 instances)
 =========
@@ -61,11 +61,11 @@ ec2-run-instances
 
 Key Pairs (awscli ec2 kp)
 =========
-ec2-create-keypair
-ec2-delete-keypair
-ec2-describe-keypairs
-ec2-fingerprint-key
-ec2-import-keypair
+*ec2-create-keypair
+*ec2-delete-keypair
+*ec2-describe-keypairs
+*ec2-fingerprint-key
+*ec2-import-keypair
 
 Monitoring (awscli ec2 monitoring)
 ==========
@@ -89,11 +89,11 @@ ec2-purchase-reserved-instances-offering
 
 Security Groups (awscli ec2 secgroup)
 ===============
-ec2-authorize
-ec2-create-group
-ec2-delete-group
-ec2-describe-group
-ec2-revoke
+*ec2-authorize
+*ec2-create-group
+*ec2-delete-group
+*ec2-describe-group
+*ec2-revoke
 
 Spot Instances (awscli ec2 spot)
 ==============

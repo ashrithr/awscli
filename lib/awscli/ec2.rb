@@ -232,6 +232,7 @@ module Awscli
               #for TCP/UDP protocols you must also specify the dest port or port range
               #for ICMP, you must specify the icmp type and code (-1 means all types/codes)
         abort "Expecting Security group id(s) of the form: 'sg-xxxxxx'" unless options[:group_id] =~ /sg-\S{8}/
+        abort "Invalid CIDR format" unless options[:cidr] =~ /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\d|[1-2]\d|3[0-2]))$/
         sg = @@conn.security_groups.get_by_id(options[:group_id])
         abort "Cannot find Security Group with Id: #{sg}" unless sg
         begin
@@ -268,14 +269,14 @@ module Awscli
       end
 
       def create_securitygroup options
-        abort "Security Group: #{options[:name]} already exists" if @@conn.security_groups.get(options[:name])
+        abort "Error: Security Group => #{options[:name]} already exists" if @@conn.security_groups.get(options[:name])
         @@conn.security_groups.create(options)
         puts "Created Security Group: #{options[:name]}"
       end
 
       def delete_securitygroup options
         sg = @@conn.security_groups.get_by_id(options[:group_id])
-        abort "Cannot find Security Group with Id: #{sg}" unless sg
+        abort "Error: Cannot find Security Group with Id: #{sg}" unless sg
         begin
           sg.destroy
           puts "Deleted Security Group with id: #{options[:group_id]}"
@@ -286,6 +287,50 @@ module Awscli
 
     end # => SG
 
+    class Eip
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.addresses.table
+      end
+
+      def create
+        eip = @@conn.addresses.create
+        puts "Created EIP: #{eip.public_ip}"
+      end
+
+      def delete options
+        abort "Invalid IP Format" unless options[:eip] =~ /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+        eip = @@conn.addresses.get(options[:eip])
+        abort "Cannot find IP: #{options[:eip]}" unless eip
+        eip.destroy
+        puts "Deleted EIP: #{eip.public_ip}"
+      end
+
+      def associate options
+        abort "Invalid IP Format" unless options[:eip] =~ /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+        eip = @@conn.addresses.get(options[:eip])
+        abort "Cannot find eip: #{options[:eip]}" unless eip
+        server = @@conn.servers.get(options[:instance_id])
+        abort "Cannot find server with id: #{options[:instance_id]}" unless server
+        begin
+          eip.server = server
+          puts "Associated EIP: #{options[:eip]} with Instance: #{options[:instance_id]}"
+        rescue Fog::Compute::AWS::Error
+          abort "Error: #{$!}"
+        end
+      end
+
+      def disassociate options
+        abort "Invalid IP Format" unless options[:eip] =~ /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/
+        abort "Cannot find EIP: #{options[:eip]}" unless @@conn.addresses.get(options[:eip])
+        @@conn.disassociate_address(options[:eip])
+        puts "Disassociated EIP: #{options[:eip]}"
+      end
+    end # => Eip
+
     class Ami
       def initialize connection, options = {}
         @@conn = connection
@@ -295,6 +340,10 @@ module Awscli
         @@conn.images.all('owner-id' => '470254534024').table([:architecture, :id, :is_public, :platform,
                                                                   :root_device_type, :state])
       end
+
+      def create_image options
+      end
+
     end # => AMI
 
     class Ebs
@@ -302,12 +351,6 @@ module Awscli
         @@conn = connection
       end
     end # => EBS
-
-    class Eip
-      def initialize connection, options = {}
-        @@conn = connection
-      end
-    end # => EIP
 
   end
 end
