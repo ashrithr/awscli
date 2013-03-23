@@ -203,13 +203,87 @@ module Awscli
     end # => KP
 
     class SecGroups
+
+      #Limitations: Ec2-Classic: user can have upto 500 groups
+                  # Ec2-VPC: user can have 50 group per VPC
+
       def initialize connection, options = {}
         @@conn = connection
       end
 
-      def list_secgroups
-        @@conn.security_groups.table([:name, :group_id, :description])
+      def list_secgroups options
+        if options[:show_ip_permissions]
+          # @@conn.security_groups.table([:name, :group_id, :ip_permissions])
+          @@conn.security_groups.each do |sg|
+            id = sg.group_id
+            ip_permissions = sg.ip_permissions.to_yaml
+            Formatador.display_line("[green]#{id}[/]")
+            puts "#{ip_permissions}"
+            puts "================="
+          end
+        else
+          @@conn.security_groups.table([:name, :group_id, :description])
+        end
       end
+
+      def authorize_securitygroup options
+        # => Ingress regular traffic -> this action applies to both EC2 and VPC Security Groups
+            # Each rule consists of the protocol, plus cidr range or a source group,
+              #for TCP/UDP protocols you must also specify the dest port or port range
+              #for ICMP, you must specify the icmp type and code (-1 means all types/codes)
+        abort "Expecting Security group id(s) of the form: 'sg-xxxxxx'" unless options[:group_id] =~ /sg-\S{8}/
+        sg = @@conn.security_groups.get_by_id(options[:group_id])
+        abort "Cannot find Security Group with Id: #{sg}" unless sg
+        begin
+          @@conn.authorize_security_group_ingress(
+            "GroupId" => options[:group_id],
+            "IpProtocol" => options[:protocol_type],
+            "FromPort" => options[:start_port],
+            "ToPort" => options[:end_port],
+            "CidrIp" => options[:cidr]
+            )
+          puts "Authorized rule"
+        rescue Fog::Compute::AWS::Error #=> e
+          abort "Error: #{$!}"
+          #puts $@ #backtrace
+        end
+      end
+
+      def revoke_securitygroup options
+        abort "Expecting Security group id(s) of the form: 'sg-xxxxxx'" unless options[:group_id] =~ /sg-\S{8}/
+        sg = @@conn.security_groups.get_by_id(options[:group_id])
+        abort "Cannot find Security Group with Id: #{sg}" unless sg
+        begin
+          response = @@conn.revoke_security_group_ingress(
+            "GroupId" => options[:group_id],
+            "IpProtocol" => options[:protocol_type],
+            "FromPort" => options[:start_port],
+            "ToPort" => options[:end_port],
+            "CidrIp" => options[:cidr]
+            )
+          puts "Revoked rule: #{response.body['return']}"
+        rescue Fog::Compute::AWS::Error #=> e
+          abort "Error: #{$!}"
+        end
+      end
+
+      def create_securitygroup options
+        abort "Security Group: #{options[:name]} already exists" if @@conn.security_groups.get(options[:name])
+        @@conn.security_groups.create(options)
+        puts "Created Security Group: #{options[:name]}"
+      end
+
+      def delete_securitygroup options
+        sg = @@conn.security_groups.get_by_id(options[:group_id])
+        abort "Cannot find Security Group with Id: #{sg}" unless sg
+        begin
+          sg.destroy
+          puts "Deleted Security Group with id: #{options[:group_id]}"
+        rescue Fog::Compute::AWS::Error #=> e
+          abort "Error: #{$!}"
+        end
+      end
+
     end # => SG
 
     class Ami
