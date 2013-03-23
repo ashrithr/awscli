@@ -70,7 +70,7 @@ module Awscli
       def reset_instance_attribute instance_id, attribute
       end
 
-      #create a single instance with optons passed
+      #create a single instance with options passed
       def create_instance options
         #validate required options
         puts "Validating Options ..."
@@ -99,52 +99,15 @@ module Awscli
         end
       end
 
-        # Launch specified instances
-        #
-        # ==== Parameters
-        # * image_id<~String> - Id of machine image to load on instances
-        # * min_count<~Integer> - Minimum number of instances to launch. If this
-        #   exceeds the count of available instances, no instances will be
-        #   launched.  Must be between 1 and maximum allowed for your account
-        #   (by default the maximum for an account is 20)
-        # * max_count<~Integer> - Maximum number of instances to launch. If this
-        #   exceeds the number of available instances, the largest possible
-        #   number of instances above min_count will be launched instead. Must
-        #   be between 1 and maximum allowed for you account
-        #   (by default the maximum for an account is 20)
-        # * options<~Hash>:
-        #   * 'Placement.AvailabilityZone'<~String> - Placement constraint for instances
-        #   * 'Placement.GroupName'<~String> - Name of existing placement group to launch instance into
-        #   * 'Placement.Tenancy'<~String> - Tenancy option in ['dedicated', 'default'], defaults to 'default'
-        #   * 'BlockDeviceMapping'<~Array>: array of hashes
-        #     * 'DeviceName'<~String> - where the volume will be exposed to instance
-        #     * 'VirtualName'<~String> - volume virtual device name
-        #     * 'Ebs.SnapshotId'<~String> - id of snapshot to boot volume from
-        #     * 'Ebs.VolumeSize'<~String> - size of volume in GiBs required unless snapshot is specified
-        #     * 'Ebs.DeleteOnTermination'<~String> - specifies whether or not to delete the volume on instance termination
-        #   * 'ClientToken'<~String> - unique case-sensitive token for ensuring idempotency
-        #   * 'DisableApiTermination'<~Boolean> - specifies whether or not to allow termination of the instance from the api
-        #   * 'SecurityGroup'<~Array> or <~String> - Name of security group(s) for instances (not supported for VPC)
-        #   * 'SecurityGroupId'<~Array> or <~String> - id's of security group(s) for instances, use this or SecurityGroup
-        #   * 'InstanceInitiatedShutdownBehaviour'<~String> - specifies whether volumes are stopped or terminated when instance is shutdown, in [stop, terminate]
-        #   * 'InstanceType'<~String> - Type of instance to boot. Valid options
-        #     in ['t1.micro', 'm1.small', 'm1.large', 'm1.xlarge', 'c1.medium', 'c1.xlarge', 'm2.xlarge', m2.2xlarge', 'm2.4xlarge', 'cc1.4xlarge', 'cc2.8xlarge', 'cg1.4xlarge']
-        #     default is 'm1.small'
-        #   * 'KernelId'<~String> - Id of kernel with which to launch
-        #   * 'KeyName'<~String> - Name of a keypair to add to booting instances
-        #   * 'Monitoring.Enabled'<~Boolean> - Enables monitoring, defaults to
-        #     disabled
-        #   * 'PrivateIpAddress<~String> - VPC option to specify ip address within subnet
-        #   * 'RamdiskId'<~String> - Id of ramdisk with which to launch
-        #   * 'SubnetId'<~String> - VPC option to specify subnet to launch instance into
-        #   * 'UserData'<~String> -  Additional data to provide to booting instances
-        #   * 'EbsOptimized'<~Boolean> - Whether the instance is optimized for EBS I/O
-      # create a new instnace
-      def run_instances
+      # create a new instnace(s)
+      def run_instances options
       end
 
       # describe instnace status
-      def describe_instance_status
+      def describe_instance_status instnace_id
+        response = @@conn.servers.get(instance_id)
+        abort "InstanceId Not found :#{instance_id}" unless response
+        puts "Instance #{instance_id} State: #{response.state}"
       end
 
       # import instance as vm
@@ -154,18 +117,36 @@ module Awscli
       #@@conn.server.get(instanceid).(:reboot, :save, :setup, :start, :stop)
       # reboot an instance
       def reboot_instance instance_id
+        response = @@conn.servers.get(instance_id)
+        abort "InstanceId Not found :#{instance_id}" unless response
+        response.reboot
+        puts "Rebooting Instance: #{instance_id}"
       end
 
       # start a stopped instance
       def stop_instance instance_id
+        response = @@conn.servers.get(instance_id)
+        abort "InstanceId Not found :#{instance_id}" unless response
+        abort "Instance should be in running to stop it" if response.state != 'running'
+        response.stop
+        puts "Stopped Instance: #{instance_id}"
       end
 
       # stop a running isntance
-      def stop_instance instance_id
+      def start_instance instance_id
+        response = @@conn.servers.get(instance_id)
+        abort "InstanceId Not found :#{instance_id}" unless response
+        abort "Instance should be stopped to start it" if response.state != 'stopped'
+        response.start
+        puts "Starting Instance: #{instance_id}"
       end
 
       # terminates an instance
       def terminate_instance instance_id
+        response = @@conn.servers.get(instance_id)
+        abort "InstanceId Not found :#{instance_id}" unless response
+        response.destroy
+        puts "Terminsted Instance: #{instance_id}"
       end
 
     end # => EC2
@@ -177,6 +158,47 @@ module Awscli
 
       def list_keypairs
         @@conn.key_pairs.table
+      end
+
+      def create_keypair options
+        #validate keypair
+        Fog.credential = 'awscli'
+        abort "KeyPair '#{options[:name]}' already exists" if @@conn.key_pairs.get(options[:name])
+        kp = @@conn.key_pairs.create(options)
+        puts "Created keypair: #{options[:name]}"
+        p kp.write  #save the key to disk
+      end
+
+      def delete_keypair keypair
+        abort "KeyPair '#{keypair}' does not exist" unless @@conn.key_pairs.get(keypair)
+        @@conn.key_pairs.get(keypair).destroy
+        puts "Deleted Keypair: #{keypair}"
+      end
+
+      def fingerprint keypair
+        response = @@conn.key_pairs.get(keypair)
+        abort "Cannot find key pair: #{keypair}" unless response
+        puts "Fingerprint for the key (#{keypair}): #{response.fingerprint}"
+      end
+
+      def import_keypair options
+        #validate if the file exists
+        private_key_path = if options[:private_key_path]
+                            File.expand_path(options[:private_key_path])
+                           else
+                            File.expand_path("~/.ssh/#{options[:name]}")
+                           end
+        public_key_path  = if options[:public_key_path]
+                            File.expand_path(options[:public_key_path])
+                           else
+                            File.expand_path("~/.ssh/#{options[:name]}.pub")
+                           end
+        abort "Cannot find private_key_path: #{private_key_path}" unless File.exist?(private_key_path)
+        abort "Cannot find public_key_path: #{public_key_path}" unless File.exist?(public_key_path)
+        #validate if the key pair name exists
+        Fog.credentials = Fog.credentials.merge({ :private_key_path => private_key_path, :public_key_path => public_key_path })
+        @@conn.import_key_pair(options[:name], IO.read(public_key_path)) if @@conn.key_pairs.get(options[:name]).nil?
+        puts "Imported KeyPair with name: #{options[:name]} sucessfully, using public_key: #{public_key_path} and private_key: #{private_key_path}"
       end
     end # => KP
 

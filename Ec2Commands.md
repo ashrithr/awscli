@@ -47,17 +47,17 @@ ec2-release-address
 
 Instances (awscli ec2 instances)
 =========
-ec2-describe-instance-attribute
-ec2-describe-instance-status
-ec2-describe-instances
+*ec2-describe-instance-attribute
+*ec2-describe-instance-status
+*ec2-describe-instances
 ec2-import-instance
 ec2-modify-instance-attribute
-ec2-reboot-instances
+*ec2-reboot-instances
 ec2-reset-instance-attribute
 ec2-run-instances
-ec2-start-instances
-ec2-stop-instances
-ec2-terminate-instances
+*ec2-start-instances
+*ec2-stop-instances
+*ec2-terminate-instances
 
 Key Pairs (awscli ec2 kp)
 =========

@@ -15,11 +15,10 @@ module AwsCli
         def list
           puts "Listing Instances"
           create_ec2_object
-          puts parent_options #access awscli/cli/ec2.rb class options
+          # puts parent_options #access awscli/cli/ec2.rb class options
           @ec2.list_instances
         end
 
-        #not necessary
         desc "diatt", "ec2_describe_instance_attribute"
         long_desc <<-LONGDESC
           Describes the specified attribute of the specified instance. You can specify only one attribute at a time.
@@ -85,7 +84,10 @@ module AwsCli
          application environment. SYSTEM checks examine the health of
          the infrastructure surrounding your instance.
         LONGDESC
+        method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id that needs to be stopped"
         def dins
+          create_ec2_object
+          @ec2.describe_instance_status options[:instance_id]
         end
 
         desc "import", "ec2_import_instance"
@@ -95,6 +97,7 @@ module AwsCli
           imported disk_image will be calculated automatically, unless specified.
         LONGDESC
         def import
+          puts "Cannot find it in the *FOG*"
         end
 
         desc "reboot", "ec2_reboot_instances"
@@ -102,7 +105,10 @@ module AwsCli
          Reboot selected running instances.
          The INSTANCE parameter is an instance ID to reboot.
         LONGDESC
+        method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id that needs to be stopped"
         def reboot
+          create_ec2_object
+          @ec2.reboot_instance options[:instance_id]
         end
 
         desc "create", "ec2_run_instances"
@@ -130,11 +136,7 @@ module AwsCli
         method_option :tags,                 :type => :hash, :default => {'Name' => "awscli-#{Time.now.to_i}"}, :desc => "Tags to identify server"
         method_option :private_ip_address,   :banner => "IP",:type => :string, :desc => "VPC option to specify ip address within subnet"
         method_option :wait_for,             :aliases => "-w", :type => :boolean, :default => false, :desc => "wait for the server to get created and return public_dns"
-        # method_option :min_count, :banner => "MINCOUNT", :type => :numeric, :default => 1, :desc => "Minimum number of instances to launch, If this exceeds the count of available instances, no instances will be launched"
-        # method_option :max_count, :banner => "MAXCOUNT", :type => :numeric, :default => 1, :desc => "max_count<~Integer> - Maximum number of instances to launch. If this exceeds the number of available instances, the largest possible number of instances above min_count will be launched instead. Must be between 1 and maximum allowed for you account"
-        # method_option :disable_api_termination, :aliases => "-d", :type => :boolean, :default => "false", :desc => "pecifies whether or not to allow termination of the instance from the api, default: false"
-        # method_option :instance_initiated_shutdown_behavior,  :banner => "", :type => :string, :desc => "specifies whether volumes are stopped or terminated when instance is shutdown, in [stop, terminate]"
-        def create
+       def create
           create_ec2_object
           @ec2.create_instance options
         end
@@ -143,21 +145,30 @@ module AwsCli
         long_desc <<-LONGDESC
           Start selected running instances.
         LONGDESC
+        method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id that needs to be stopped"
         def start
+          create_ec2_object
+          @ec2.start_instance options[:instance_id]
         end
 
         desc "stop", "ec2_stop_instances"
         long_desc <<-LONGDESC
           Stop selected running instances.
         LONGDESC
+        method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id that needs to be stopped"
         def stop
+          create_ec2_object
+          @ec2.stop_instance options[:instance_id]
         end
 
         desc "kill", "ec2_terminate_instances"
         long_desc <<-LONGDESC
           Terminate selected running instances
         LONGDESC
-        def kill
+        method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id that needs to be stopped"
+        def terminate
+          create_ec2_object
+          @ec2.terminate_instance options[:instance_id]
         end
 
         private
@@ -165,7 +176,6 @@ module AwsCli
         def create_ec2_object
           puts "ec2 Establishing Connetion..."
           $ec2_conn = Awscli::Connection.new.request_ec2
-          puts $ec2_conn
           puts "ec2 Establishing Connetion... OK"
           @ec2 = Awscli::EC2::EC2.new($ec2_conn)
         end
