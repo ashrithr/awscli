@@ -484,5 +484,25 @@ module Awscli
       end
     end # => Monitor
 
+    class Tags
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.tags.table
+      end
+
+      def create options
+        @@conn.tags.create(options)
+        puts "Created Tag"
+      end
+
+      def delete options
+        @@conn.tags.destroy(options)
+        puts "Deleted Tag"
+      end
+    end # => Tags
+
   end
 end

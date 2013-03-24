@@ -25,12 +25,6 @@ ec2-describe-spot-instance-requests
 ec2-describe-spot-price-history
 ec2-request-spot-instances
 
-Tags (awscli ec2 tags)
-====
-ec2-create-tags
-ec2-delete-tags
-ec2-describe-tags
-
 VM Import
 =========
 ec2-cancel-conversion-task
