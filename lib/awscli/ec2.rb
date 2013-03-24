@@ -571,5 +571,59 @@ module Awscli
       end
     end # => ReservedInstances
 
+    class Spot
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def describe_spot_requests
+        @@conn.spot_requests.table
+      end
+
+      def describe_spot_datafeed_subscription
+        @@conn.describe_spot_datafeed_subscription
+      end
+
+      def describe_spot_price_history filters
+        puts filters
+        response =  if filters.nil?
+                      @@conn.describe_spot_price_history.body['spotPriceHistorySet']
+                    else
+                      @@conn.describe_spot_price_history(filters).body['spotPriceHistorySet']
+                    end
+        Formatador.display_table(response)
+      end
+
+      def list_filters
+        filters = [
+          {:filter_name => "instance-type", :desc => "Type of instance"},
+          {:filter_name => "product-description", :desc => "Product description for the Spot Price"},
+          {:filter_name => "spot-price", :desc => "Spot Price. The value must match exactly (or use wildcards; greater than or less than comparison is not supported)"},
+          {:filter_name => "timestamp", :desc => "Timestamp of the Spot Price history, e.g., 2010-08-16T05:06:11.000Z. You can use wildcards (* and ?)"},
+        ]
+        Formatador.display_table(filters, [:filter_name, :desc])
+      end
+
+      def create_spot_datafeed_subsription bucket, prefix
+        @@conn.create_spot_datafeed_subscription(bucket, prefix)
+      end
+
+      def delete_spot_datafeed_subsription
+        @@conn.delete_spot_datafeed_subscription
+      end
+
+      def request_spot_instances options
+        sr = @@conn.spot_requests.create(options)
+        puts "Created spot request: #{sr.id}"
+      end
+
+      def cancel_spot_instance_requests sid
+        sr = @@conn.spot_requests.get(sid)
+        abort "Cannot find spot request with id: #{sid}" unless sr
+        sr.destroy
+        puts "Deleted spot request: #{sid}"
+      end
+    end # => Spot
+
   end
 end
