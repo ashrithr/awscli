@@ -336,12 +336,61 @@ module Awscli
         @@conn = connection
       end
 
-      def list_images_amazon
-        @@conn.images.all('owner-id' => '470254534024').table([:architecture, :id, :is_public, :platform,
-                                                                  :root_device_type, :state])
+      def list filter
+        puts filter
+        if filter.nil?
+          @@conn.images.all.table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
+        else
+          @@conn.images.all(filter).table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
+        end
       end
 
-      def create_image options
+      def show_filters
+        filters =
+          [
+            {:filter_name => "architecture", :desc => "Image Architecture"},
+            {:filter_name => "block-device-mapping.delete-on-termination", :desc => "Whether the Amazon EBS volume is deleted on instance termination"},
+            {:filter_name => "block-device-mapping.device-name", :desc => "Device name (e.g., /dev/sdh) for an Amazon EBS volume mapped to the image"},
+            {:filter_name => "block-device-mapping.snapshot-id", :desc => "Snapshot ID for an Amazon EBS volume mapped to the image"},
+            {:filter_name => "block-device-mapping.volume-size", :desc => "Volume size for an Amazon EBS volume mapped to the image"},
+            {:filter_name => "description", :desc => "Description of the AMI (provided during image creation)"},
+            {:filter_name => "image-id", :desc => "ID of the image" },
+            {:filter_name => "imgae-type", :desc => "Type of image" },
+            {:filter_name => "is-public", :desc => "Whether the image is public" },
+            {:filter_name => "kernel-id", :desc => "Kernel ID" },
+            {:filter_name => "manifest-location", :desc => "Location of the image manifest" },
+            {:filter_name => "name", :desc => "Name of the AMI (provided during image creation)" },
+            {:filter_name => "owner-alias", :desc => "AWS account alias (e.g., amazon or self) or AWS account ID that owns the AMI" },
+            {:filter_name => "owner-id", :desc => "AWS account ID of the image owner" },
+            {:filter_name => "platform", :desc => "Use windows if you have Windows based AMIs; otherwise leave blank" },
+            {:filter_name => "product-code", :desc => "Product code associated with the AMI" },
+            {:filter_name => "ramdisk-id", :desc => "RAM disk ID" },
+            {:filter_name => "root-device-name", :desc => "Root device name of the AMI (e.g., /dev/sda1)" },
+            {:filter_name => "root-device-type", :desc => "Root device type the AMI uses" },
+            {:filter_name => "state", :desc => "State of the image" },
+            {:filter_name => "state-reason-code", :desc => "Reason code for the state change" },
+            {:filter_name => "state-reason-message", :desc => "Message for the state change" },
+            {:filter_name => "tag-key", :desc => "Key of a tag assigned to the resource. This filter is independent of the tag-value filter" },
+            {:filter_name => "tag-value", :desc => "Value of a tag assigned to the resource. This filter is independent of the tag-key filter." },
+            {:filter_name => "virtualization-type", :desc => "Virtualization type of the image" },
+            {:filter_name => "hypervisor", :desc => "Hypervisor type of the image" }
+          ]
+        Formatador.display_table(filters, [:filter_name, :desc])
+      end
+
+      def list_amazon
+        @@conn.images.all('owner-alias' => 'amazon').table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
+      end
+
+      def create_image_from_instance options
+        abort "Invalid Instace: #{options[:instance_id]}" unless @@conn.servers.get(options[:instance_id])
+        @@conn.create_image(
+            options[:instance_id],
+            options[:name],
+            options[:desc],
+            options[:no_reboot]
+          )
+        puts "Created image from instance: #{options[:instance_id]}"
       end
 
     end # => AMI
