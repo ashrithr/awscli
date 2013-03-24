@@ -1,11 +1,5 @@
 http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/OperationList-cmd.html
 
-Placement Groups (awscli ec2 placement)
-================
-ec2-create-placement-group
-ec2-delete-placement-group
-ec2-describe-placement-groups
-
 Reserved Instances
 ==================
 ec2-cancel-reserved-instances-listing

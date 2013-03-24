@@ -504,5 +504,25 @@ module Awscli
       end
     end # => Tags
 
+    class Placement
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.describe_placement_groups
+      end
+
+      def create options
+        @@conn.create_placement_group(options[:name], options[:strategy])
+        puts "Created a new placement group: #{options[:name]}"
+      end
+
+      def delete options
+        @@conn.delete_placement_group(options[:name])
+        puts "Deleted placement group: #{options[:name]}"
+      end
+    end # => Placement
+
   end
 end
