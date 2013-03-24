@@ -462,5 +462,27 @@ module Awscli
       end
     end # => EBS
 
+    class Monitor
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def monitor options
+        options[:instance_ids].each do |instance|
+          abort "Invalid InstanceId: #{instance}" unless @@conn.servers.get(instance)
+        end
+        @@conn.monitor_instances(options[:instance_ids])
+        puts "Enabled monitoring for instnaces: #{options[:instance_ids].join(",")}"
+      end
+
+      def unmonitor options
+        options[:instance_ids].each do |instance|
+          abort "Invalid InstanceId: #{instance}" unless @@conn.servers.get(instance)
+        end
+        @@conn.unmonitor_instances(options[:instance_ids])
+        puts "Disabled monitoring for instnaces: #{options[:instance_ids].join(",")}"
+      end
+    end # => Monitor
+
   end
 end

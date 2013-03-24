@@ -1,77 +1,5 @@
 http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/OperationList-cmd.html
 
-AMI (awscli ec2 ami)
-===
-ec2-create-image
-ec2-deregister
-ec2-describe-image-attribute
-ec2-describe-images
-ec2-migrate-image
-ec2-modify-image-attribute
-ec2-register
-ec2-reset-image-attribute
-
-Availability Zones & Regions
-============================
-ec2-describe-availability-zone
-ec2-describe-regions
-
-Elastic Block Store (awscli ec2 ebs)
-===================
-ec2-attach-volume
-ec2-copy-snapshot
-ec2-create-snapshot
-*ec2-create-volume
-ec2-delete-disk-image
-ec2-delete-snapshot
-ec2-delete-volume
-ec2-describe-snapshot-attribute
-ec2-describe-snapshots
-*ec2-describe-volumes
-ec2-describe-volume-attribute
-ec2-describe-volume-status
-ec2-detach-volume
-ec2-enable-volume-io
-ec2-import-volume
-ec2-modify-snapshot-attribute
-ec2-modify-volume-attribute
-ec2-reset-snapshot-attribute
-
-EIP (awscli ec2 eip)
-===
-*ec2-allocate-address
-*ec2-associate-address
-*ec2-describe-addresses
-*ec2-disassociate-address
-*ec2-release-address
-
-Instances (awscli ec2 instances)
-=========
-*ec2-describe-instance-attribute
-*ec2-describe-instance-status
-*ec2-describe-instances
-ec2-import-instance
-ec2-modify-instance-attribute
-*ec2-reboot-instances
-ec2-reset-instance-attribute
-ec2-run-instances
-*ec2-start-instances
-*ec2-stop-instances
-*ec2-terminate-instances
-
-Key Pairs (awscli ec2 kp)
-=========
-*ec2-create-keypair
-*ec2-delete-keypair
-*ec2-describe-keypairs
-*ec2-fingerprint-key
-*ec2-import-keypair
-
-Monitoring (awscli ec2 monitoring)
-==========
-ec2-monitor-instances
-ec2-unmonitor-instances
-
 Placement Groups (awscli ec2 placement)
 ================
 ec2-create-placement-group
@@ -86,14 +14,6 @@ ec2-describe-reserved-instances
 ec2-describe-reserved-instances-listings
 ec2-describe-reserved-instances-offerings
 ec2-purchase-reserved-instances-offering
-
-Security Groups (awscli ec2 secgroup)
-===============
-*ec2-authorize
-*ec2-create-group
-*ec2-delete-group
-*ec2-describe-group
-*ec2-revoke
 
 Spot Instances (awscli ec2 spot)
 ==============
