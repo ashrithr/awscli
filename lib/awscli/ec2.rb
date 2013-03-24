@@ -350,6 +350,59 @@ module Awscli
       def initialize connection, options = {}
         @@conn = connection
       end
+
+      def list
+        unless options[:snapshots]
+          @@conn.volumes.table([:availability_zone, :delete_on_termination, :device, :id, :server_id, :size, :snapshot_id, :state, :tags, :type])
+        else
+          @@conn.snapshots.table([:id, :owner_id, :volume_id, :state, :progress, :tags, :description])
+        end
+      end
+
+      def create options
+        @@conn.volumes.create(options)
+      end
+
+      def attach_volume options
+        #The volume and instance must be in the same Availability Zone.
+        volume = @@conn.volumes.get(options[:volume_id])
+        volume.merge_attributes(:device => options[:device])
+        server = @@conn.servers.get(options[:instance_id])
+        abort "Cannot find volume: #{options[:volume_id]}" unless volume
+        abort "Cannot find instance: #{options[:instance_id]}" unless server
+        volume.server = server
+      end
+
+      def detach_volume options
+        #Check if the volume is mounted and show warning regarding data loss
+        volume = @@conn.volumes.get(options[:volume_id])
+        abort "Cannot find volume: #{options[:volume_id]}" unless volume
+        if options[:force]
+          volume.force_detach
+        else
+          @@conn.detach_volume(options[:volume_id])
+        end
+      end
+
+      def delete_volume options
+        @@conn.volumes.get(options[:volume_id]).destroy
+      end
+
+      def create_snapshot options
+        abort "Cannot find volume: #{options[:volume_id]}" unless @@conn.volumes.get(options[:volume_id])
+        @@conn.snapshots.create(options)
+      end
+
+      def copy_snapshot options
+        abort "Cannot find snapshot: #{options[:snapshot_id]}" unless @@conn.snapshots.get(options[:snapshot_id])
+        @@conn.copy_snapshot(options[:snapshot_id], options[:source_region])
+      end
+
+      def delete_snapshot options
+        snap = @@conn.snapshots.get(options[:snapshot_id])
+        abort "Cannot find snapshot: #{options[:snapshot_id]}" unless snap
+        snap.destroy
+      end
     end # => EBS
 
   end

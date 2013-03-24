@@ -21,13 +21,13 @@ Elastic Block Store (awscli ec2 ebs)
 ec2-attach-volume
 ec2-copy-snapshot
 ec2-create-snapshot
-ec2-create-volume
+*ec2-create-volume
 ec2-delete-disk-image
 ec2-delete-snapshot
 ec2-delete-volume
 ec2-describe-snapshot-attribute
 ec2-describe-snapshots
-ec2-describe-volumes
+*ec2-describe-volumes
 ec2-describe-volume-attribute
 ec2-describe-volume-status
 ec2-detach-volume
