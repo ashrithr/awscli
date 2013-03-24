@@ -351,7 +351,7 @@ module Awscli
         @@conn = connection
       end
 
-      def list
+      def list options
         unless options[:snapshots]
           @@conn.volumes.table([:availability_zone, :delete_on_termination, :device, :id, :server_id, :size, :snapshot_id, :state, :tags, :type])
         else
@@ -371,6 +371,7 @@ module Awscli
         abort "Cannot find volume: #{options[:volume_id]}" unless volume
         abort "Cannot find instance: #{options[:instance_id]}" unless server
         volume.server = server
+        puts "Attached volume: #{options[:volume_id]} to instance: #{options[:instance_id]}"
       end
 
       def detach_volume options
@@ -382,26 +383,33 @@ module Awscli
         else
           @@conn.detach_volume(options[:volume_id])
         end
+        puts "Detached volume: #{options[:volume_id]}"
       end
 
       def delete_volume options
-        @@conn.volumes.get(options[:volume_id]).destroy
+        vol = @@conn.volumes.get(options[:volume_id])
+        abort "Cannot find volume #{options[:volume_id]}" unless vol
+        vol.destroy
+        puts "Deleted volume: #{options[:volume_id]}"
       end
 
       def create_snapshot options
         abort "Cannot find volume: #{options[:volume_id]}" unless @@conn.volumes.get(options[:volume_id])
         @@conn.snapshots.create(options)
+        puts "Created snapshot"
       end
 
       def copy_snapshot options
         abort "Cannot find snapshot: #{options[:snapshot_id]}" unless @@conn.snapshots.get(options[:snapshot_id])
         @@conn.copy_snapshot(options[:snapshot_id], options[:source_region])
+        puts "Copied snapshot"
       end
 
       def delete_snapshot options
         snap = @@conn.snapshots.get(options[:snapshot_id])
         abort "Cannot find snapshot: #{options[:snapshot_id]}" unless snap
         snap.destroy
+        puts "Destroyed snapshot"
       end
     end # => EBS
 

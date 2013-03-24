@@ -8,7 +8,7 @@ module AwsCli
         method_option :snapshots, :aliases => "-s", :type => :boolean, :default => false, :desc => "list snapshots"
         def list
           create_ec2_object
-          @ec2.list
+          @ec2.list options
         end
 
         desc "create", "Create a EBS Volume"
@@ -62,9 +62,10 @@ module AwsCli
         end
 
         desc "delete_snapshot", "Delete SnapShot"
+        method_option :snapshot_id, :aliases => "-i", :banner => "ID", :required => true, :type => :string, :desc => "Snapshot Id to delete"
         def delete_snapshot
           create_ec2_object
-          @ec2.delete_snapshot
+          @ec2.delete_snapshot options
         end
 
         private
