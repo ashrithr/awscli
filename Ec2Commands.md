@@ -1,15 +1,5 @@
 http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/OperationList-cmd.html
 
-Spot Instances (awscli ec2 spot)
-==============
-ec2-cancel-spot-instance-requests
-ec2-create-spot-datafeed-subscription
-ec2-delete-spot-datafeed-subscription
-ec2-describe-spot-datafeed-subscription
-ec2-describe-spot-instance-requests
-ec2-describe-spot-price-history
-ec2-request-spot-instances
-
 VM Import
 =========
 ec2-cancel-conversion-task
@@ -27,14 +17,6 @@ ec2-describe-export-tasks
 
 VPC (awscli vpc)
 ===
-
-VPCs (awscli vpc)
-=================
-ec2-create-vpc
-ec2-delete-vpc
-ec2-describe-vpc-attribute
-ec2-describe-vpcs
-ec2-modify-vpc-attribute
 
 VPN Connections (awscli vpc connections)
 ============================

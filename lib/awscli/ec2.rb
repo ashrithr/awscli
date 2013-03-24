@@ -625,5 +625,27 @@ module Awscli
       end
     end # => Spot
 
+    class Vpc
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.vpcs.table
+      end
+
+      def create options
+        vpc = @@conn.vpcs.create(options)
+        puts "Created VPC: #{vpc.id}"
+      end
+
+      def delete vpc_id
+        vpc = @@conn.vpcs.get(vpc_id)
+        abort "cannot find vpc: #{vpc_id}" unless vpc
+        vpc.destroy
+        puts "Deleted VPC : #{vpc_id}"
+      end
+    end # => Vpc
+
   end
 end
