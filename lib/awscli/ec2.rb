@@ -524,5 +524,52 @@ module Awscli
       end
     end # => Placement
 
+    class ReservedInstances
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list filters
+        puts filters
+        if filters.nil?
+          @@conn.describe_reserved_instances.body['reservedInstancesSet']
+        else
+          @@conn.describe_reserved_instances(filters).body['reservedInstancesSet']
+        end
+      end
+
+      def list_offerings filters
+        puts filters
+        response =  if filters.nil?
+                      @@conn.describe_reserved_instances_offerings.body['reservedInstancesOfferingsSet']
+                    else
+                      @@conn.describe_reserved_instances_offerings(filters).body['reservedInstancesOfferingsSet']
+                    end
+        Formatador.display_table(response)
+      end
+
+      def list_filters
+        filters = [
+          {:filter_name => "availability-zone", :desc => "Availability Zone where the Reserved Instance can be used", :availability => "Both"},
+          {:filter_name => "duration", :desc => "Duration of the Reserved Instance (e.g., one year or three years), in seconds", :availability => "Both"},
+          {:filter_name => "fixed-price", :desc => "Purchase price of the Reserved Instance", :availability => "Both"},
+          {:filter_name => "instance-type", :desc => "Instance type on which the Reserved Instance can be used", :availability => "Both"},
+          {:filter_name => "product-description", :desc => "Reserved Instance description", :availability => "Both"},
+          {:filter_name => "reserved-instances-id", :desc => "Reserved Instance's ID", :availability => "Only ReservedInstances"},
+          {:filter_name => "reserved-instances-offering-id", :desc => "Reserved Instances offering ID", :availability => "Only reservedInstancesOfferingsSet"},
+          {:filter_name => "start", :desc => "Time the Reserved Instance purchase request was placed", :availability => "Only ReservedInstances"},
+          {:filter_name => "state", :desc => "State of the Reserved Instance", :availability => "Only ReservedInstances"},
+          {:filter_name => "tag-key", :desc => "Key of a tag assigned to the resource", :availability => "Only ReservedInstances"}, #This filter is independent of the tag-value filter. For example, if you use both the filter tag-key=Purpose and the filter tag-value=X, you get any resources assigned both the tag key Purpose and the tag value X
+          {:filter_name => "tag-value", :desc => "Value of a tag assigned to the resource", :availability => "Only ReservedInstances"}, #This filter is independent of the tag-key filter.
+          {:filter_name => "usage-price", :desc => "Usage price of the Reserved Instance, per hour", :availability => "Both"},
+        ]
+        Formatador.display_table(filters, [:filter_name, :desc, :availability])
+      end
+
+      def purchase options
+        @@conn.purchase_reserved_instances_offering(options[:reserved_instances_offering_id], options[:instance_count])
+      end
+    end # => ReservedInstances
+
   end
 end

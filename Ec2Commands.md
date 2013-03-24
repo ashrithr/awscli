@@ -1,14 +1,5 @@
 http://docs.aws.amazon.com/AWSEC2/latest/CommandLineReference/OperationList-cmd.html
 
-Reserved Instances
-==================
-ec2-cancel-reserved-instances-listing
-ec2-create-reserved-instances-listing
-ec2-describe-reserved-instances
-ec2-describe-reserved-instances-listings
-ec2-describe-reserved-instances-offerings
-ec2-purchase-reserved-instances-offering
-
 Spot Instances (awscli ec2 spot)
 ==============
 ec2-cancel-spot-instance-requests
