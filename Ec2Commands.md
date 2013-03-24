@@ -85,9 +85,3 @@ ec2-create-internet-gateway
 ec2-delete-internet-gateway
 ec2-describe-internet-gateways
 ec2-detach-internet-gateway
-
-Subnets (awscli vpc subnets)
-===================
-ec2-create-subnet
-ec2-delete-subnet
-ec2-describe-subnets

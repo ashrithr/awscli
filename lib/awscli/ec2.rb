@@ -647,5 +647,27 @@ module Awscli
       end
     end # => Vpc
 
+    class Subnet
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.subnets.table
+      end
+
+      def create options
+        subnet = @@conn.subnets.create(options)
+        puts "Created Subnet: #{subnet.id}"
+      end
+
+      def delete subnet_id
+        subnet = @@conn.subnets.get(subnet_id)
+        abort "Cannot find subnet: #{subnet_id}" unless subnet
+        subnet.destroy
+        puts "Deleted subnet: #{subnet_id}"
+      end
+    end # => Subnet
+
   end
 end
