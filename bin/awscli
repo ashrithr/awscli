@@ -18,8 +18,11 @@ rescue Excon::Errors::SocketError => e
   puts "Error: Establishing Connection to AWS, #{e}"
 rescue Fog::Compute::AWS::Error
   puts "Error: #{$!}"
- rescue Fog::Compute::AWS::NotFound
+rescue Fog::Compute::AWS::NotFound
   puts "Cannot find Resource: #{$!}"
+rescue Excon::Errors::InternalServerError
+  puts "Something went wrong, please try again!."
+  puts "Error: #{$!}"
 # rescue ArgumentError => e
 #   puts "Cannot recognize the argument passed, #{e}"
 end

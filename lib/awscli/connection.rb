@@ -31,11 +31,17 @@ module Awscli
       Fog::Compute.new(@@config)
     end
 
-    def request_s3
+    def request_s3 region=nil
       # => returns S3 connection object
       @@config.merge!(:provider => 'AWS')
       if @@config['region']
-        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@@config['region'])
+        #remove region
+        @@config.reject!{ |k| k == "region" }
+      end
+      #parse optionally passing region
+      if region
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(region)
+        @@config.merge!(:region => region)
       end
       Fog::Storage.new(@@config)
     end
