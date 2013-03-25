@@ -38,13 +38,6 @@ ec2-create-customer-gateway
 ec2-delete-customer-gateway
 ec2-describe-customer-gateways
 
-VPC DHCP Options (awscli vpc dhcp)
-================
-ec2-associate-dhcp-options
-ec2-create-dhcp-options
-ec2-delete-dhcp-options
-ec2-describe-dhcp-options
-
 Route Tables (awscli vpc route_tables)
 =========================
 ec2-associate-route-table

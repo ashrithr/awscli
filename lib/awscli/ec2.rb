@@ -149,6 +149,11 @@ module Awscli
         puts "Terminsted Instance: #{instance_id}"
       end
 
+      def get_console_output instance_id
+        response = @@conn.get_console_output(instance_id)
+        puts response
+      end
+
     end # => EC2
 
     class KeyPairs
@@ -757,6 +762,29 @@ module Awscli
         puts "Deattached InternetGateway: #{gwid} from VPC: #{vpcid}"
       end
     end # => InternetGateways
+
+    class Dhcp
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.dhcp_options.table
+      end
+
+      def create options
+        @@conn.dhcp_options.create(options)
+      end
+
+      def delete dhcp_id
+        dhcp = @@conn.dhcp_options(dhcp_id)
+        dhcp.destroy
+      end
+
+      def associate dhcp_ic, vpc_id
+        @@conn.dhcp_options.attach(dhcp_id, vpc_id)
+      end
+    end # => Dhcp
 
   end
 end

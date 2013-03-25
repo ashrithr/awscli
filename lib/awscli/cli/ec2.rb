@@ -7,12 +7,6 @@ module AwsCli
 
       class_option :region, :type => :string, :desc => "region to connect to", :default => 'us-west-1'
 
-      method_option :dr, :type => :numeric, :desc => "repeat greeting X times", :default => 3
-      desc "describe_ec2_instances", "list instances"
-      def describe_ec2_instances
-        p ec2_object.inspect
-      end
-
       private
 
       def create_ec2_object

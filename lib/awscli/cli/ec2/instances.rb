@@ -171,6 +171,13 @@ module AwsCli
           @ec2.terminate_instance options[:instance_id]
         end
 
+        desc "console_output", "Retrieve console output for specified instance"
+        method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id to get console output from"
+        def console_output
+          create_ec2_object
+          @ec2.get_console_output options[:instance_id]
+        end
+
         private
 
         def create_ec2_object

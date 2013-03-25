@@ -8,15 +8,6 @@ module AwsCli
     #              :desc => 'Configuration file, accepts ENV $AWSCLI_CONFIG_FILE',
     #              :default => ENV['AWSCLI_CONFIG_FILE'] || "~/.awscli.yml"
 
-    method_option :rf, :banner => "NUM", :type => :numeric, :desc => "repeat greering X times", :default => 3
-    desc "foo", "prints foo"
-    long_desc <<-LONGDESC
-      Prints out foo's method long description
-    LONGDESC
-    def foo
-      puts "foo" * options.rf
-    end
-
     desc "help", "help banner"
     def help_banner
       puts <<-HELP.gsub(/^ {8}/, '')

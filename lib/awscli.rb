@@ -37,4 +37,5 @@ module AwsCli
   require 'awscli/cli/ec2/vpc/network_acls'
   require 'awscli/cli/ec2/vpc/net_interfaces'
   require 'awscli/cli/ec2/vpc/internet_gateways'
+  require 'awscli/cli/ec2/vpc/dhcp'
 end
