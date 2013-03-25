@@ -18,8 +18,7 @@ module AwsCli
   # => first require cli so all subcommands can register
   require 'awscli/cli'
   # => register all subcommands
-  require 'awscli/cli/more'
-  require 'awscli/cli/config'
+    #EC2
   require 'awscli/cli/ec2'
   require 'awscli/cli/ec2/instances'
   require 'awscli/cli/ec2/ami'
@@ -38,4 +37,6 @@ module AwsCli
   require 'awscli/cli/ec2/vpc/net_interfaces'
   require 'awscli/cli/ec2/vpc/internet_gateways'
   require 'awscli/cli/ec2/vpc/dhcp'
+    #S3
+  require 'awscli/cli/s3'
 end
