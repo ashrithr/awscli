@@ -17,15 +17,5 @@ module AwsCli
       help  #call help
     end
 
-    #subcommand to awscli/cli/config.rb config class
-    # require 'awscli/cli/config'
-    # desc "config", "config print"
-    # subcommand "config", AwsCli::Config
-
-    # # => Register subcommands here
-    # require 'awscli/cli/more'
-    # require 'awscli/cli/config'
-    # register AwsCli::More, :more, 'more', 'Execute a multistep subtask'
-    # register AwsCli::Config, :config, 'config [COMMAND]', 'Delegates a subcomamnd'
   end
 end

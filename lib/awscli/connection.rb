@@ -31,6 +31,15 @@ module Awscli
       Fog::Compute.new(@@config)
     end
 
+    def request_s3
+      # => returns S3 connection object
+      @@config.merge!(:provider => 'AWS')
+      if @@config['region']
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@@config['region'])
+      end
+      Fog::Storage.new(@@config)
+    end
+
     def request_as
       # => returns AWS Auto Scaling connection object
       Fog::AWS::AutoScaling.new(@@config)

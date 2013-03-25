@@ -39,4 +39,6 @@ module AwsCli
   require 'awscli/cli/ec2/vpc/dhcp'
     #S3
   require 'awscli/cli/s3'
+  require 'awscli/cli/s3/files'
+  require 'awscli/cli/s3/directories'
 end
