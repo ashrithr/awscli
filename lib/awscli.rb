@@ -34,5 +34,7 @@ module AwsCli
   require 'awscli/cli/ec2/tags'
   require 'awscli/cli/ec2/vmmng'
   require 'awscli/cli/ec2/vpc'
-
+  require 'awscli/cli/ec2/vpc/network_acls'
+  require 'awscli/cli/ec2/vpc/net_interfaces'
+  require 'awscli/cli/ec2/vpc/internet_gateways'
 end

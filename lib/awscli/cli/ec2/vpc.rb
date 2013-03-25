@@ -2,7 +2,7 @@ module AwsCli
   module CLI
     module EC2
       require 'awscli/cli/ec2'
-      class VPC < Thor
+      class Vpc < Thor
 
         desc "list", "List VPCs"
         def list
@@ -11,7 +11,7 @@ module AwsCli
         end
 
         desc "create", "Create a VPC with the CIDR block you specify"
-        method_option :cidr_block, :aliases => "-c", :type => :string, :required => true, :desc => "The CIDR block you want the VPC to cover (e.g., 10.0.0.0/16)"
+        method_option :cidr_block, :aliases => "-c", :type => :string, :required => true, :desc => "The CIDR block you want the VPC to cover (e.g., 10.0.0.0/16), You can't change the size of a VPC after you create it"
         method_option :tenancy, :type => :string, :default => "default", :desc => "The allowed tenancy of instances launched into the VPC. A value of default means instances can be launched with any tenancy; a value of dedicated means instances must be launched with tenancy as dedicated"
         def create
           create_ec2_object
@@ -34,7 +34,7 @@ module AwsCli
           @ec2 = Awscli::EC2::Vpc.new($ec2_conn)
         end
 
-        AwsCli::CLI::Ec2.register AwsCli::CLI::EC2::VPC, :vpc, 'vpc [COMMAND]', 'EC2 VPC Management'
+        AwsCli::CLI::Ec2.register AwsCli::CLI::EC2::Vpc, :vpc, 'vpc [COMMAND]', 'EC2 VPC Management'
 
       end
     end

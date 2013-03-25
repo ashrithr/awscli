@@ -669,5 +669,94 @@ module Awscli
       end
     end # => Subnet
 
+    class NetworkAcl
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        puts "Listing Network Acls"
+      end
+
+    end # => NetworkAcl
+
+    class NetworkInterfaces
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.network_interfaces.table
+      end
+
+      def create options
+        nic = @@conn.network_interfaces.create(options)
+        puts "Create network interface #{nic.network_interface_id}"
+      end
+
+      def delete nic_id
+        nic = @@conn.network_interfaces.get(nic_id)
+        abort "Cannot find nic with id: #{nic_id}" unless nic
+        nic.destroy
+        puts "Deleted network interface #{nic_id}"
+      end
+
+      def attach nic_id, instance_id, device_index
+        @@conn.attach_network_interface(nic_id, instance_id, device_index)
+        puts "Attached Network Interface: #{nic_id} to instance: #{instance_id}"
+      end
+
+      def deattach attachement_id, force
+        @@conn.detach_network_interface attachement_id, force
+        puts "Deattached Network Interface with attachement_id: #{attachement_id}"
+      end
+
+      def modify_attribute options
+        case options[:attribute]
+        when 'description'
+          @@conn.modify_network_interface_attribute(options[:network_interface_id], 'description', options[:description])
+        when 'groupSet'
+          @@conn.modify_network_interface_attribute(options[:network_interface_id], 'groupSet', options[:group_set])
+        when 'sourceDestCheck'
+          @@conn.modify_network_interface_attribute(options[:network_interface_id], 'sourceDestCheck', options[:source_dest_check])
+        when 'attachment'
+          @@conn.modify_network_interface_attribute(options[:network_interface_id], 'attachment', options[:attachment])
+        else
+          abort "Invalid attribute: #{options[:attribute]}"
+        end
+      end
+    end # => NetworkInterfaces
+
+    class InternetGateways
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.internet_gateways.table
+      end
+
+      def create
+        gw = @@conn.internet_gateways.create
+        puts "Created Internet Gateway: #{gw.id}"
+      end
+
+      def delete gwid
+        gw = @@conn.internet_gateways.get(gwid)
+        gw.destroy
+        puts "Deleted Internet Gateway: #{gwid}"
+      end
+
+      def attach gwid, vpcid
+        @@conn.internet_gateways.attach(gwid, vpcid)
+        puts "Attached InternetGateway: #{gwid} to VPC: #{vpcid}"
+      end
+
+      def deattach gwid, vpcid
+        @@conn.internet_gateways.deattach(gwid, vpcid)
+        puts "Deattached InternetGateway: #{gwid} from VPC: #{vpcid}"
+      end
+    end # => InternetGateways
+
   end
 end

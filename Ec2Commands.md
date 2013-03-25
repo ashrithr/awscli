@@ -66,22 +66,3 @@ ec2-delete-network-acl-entry
 ec2-describe-network-acls
 ec2-replace-network-acl-association
 ec2-replace-network-acl-entry
-
-VPC Elastic Network Interfaces (awscli vpc net_interfaces)
-==============================
-ec2-attach-network-interface
-ec2-create-network-interface
-ec2-delete-network-interface
-ec2-describe-network-interfaces
-ec2-describe-network-interface-attributes
-ec2-detach-network-interface
-ec2-modify-network-interface-attribute
-ec2-reset-network-interface-attribute
-
-VPC Internet Gateways (awscli vpc int_gateways)
-=====================
-ec2-attach-internet-gateway
-ec2-create-internet-gateway
-ec2-delete-internet-gateway
-ec2-describe-internet-gateways
-ec2-detach-internet-gateway
