@@ -3,7 +3,6 @@ require File.join([File.dirname(__FILE__),'lib','awscli','version.rb'])
 spec = Gem::Specification.new do |s|
   s.name = 'awscli'
   s.version = Awscli::VERSION
-  s.date = Date.today.to_s
   s.author = 'Ashrith'
   s.email = 'ashrith@me.com'
   s.homepage = 'http://github.com/ashrithr/awscli'
@@ -13,12 +12,13 @@ spec = Gem::Specification.new do |s|
   #Files
   #ensure gem is built out of versioned files
   s.files = Dir['Rakefile', '{bin,lib,man,test,spec}/**/*', 'README*', 'LICENSE'] & `git ls-files -z`.split("\0")
+  s.test_files = `git ls-files -- {test,features}/*`.split("\n")
+  s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths << 'lib'
   s.has_rdoc = true
   s.extra_rdoc_files = ['README.rdoc','awscli.rdoc']
   s.rdoc_options << '--title' << 'awscli' << '--main' << 'README.rdoc' << '-ri'
   s.bindir = 'bin'
-  s.executables << 'awscli'
 
   #Dependencies
   s.add_development_dependency('rake')

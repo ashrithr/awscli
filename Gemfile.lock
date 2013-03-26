@@ -2,9 +2,9 @@ PATH
   remote: .
   specs:
     awscli (0.0.1)
-      fog
+      fog (>= 1.10.0)
       highline
-      thor
+      thor (>= 0.17.0)
 
 GEM
   remote: https://rubygems.org/
