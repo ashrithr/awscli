@@ -6,8 +6,12 @@ Signal.trap("INT") { exit 1 }
 #load the path if not loaded previously
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib') unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/../lib')
 
-require "rubygems" if RUBY_VERSION < "1.9" #ruby 1.9 doesnt need this
-require "awscli"
+begin
+  require "awscli"
+rescue LoadError
+  require "rubygems"
+  require "awscli"
+end
 
 #Start the cli
 begin
@@ -23,6 +27,6 @@ rescue Fog::Compute::AWS::NotFound
 rescue Excon::Errors::InternalServerError
   puts "Something went wrong, please try again!."
   puts "Error: #{$!}"
-# rescue ArgumentError => e
-#   puts "Cannot recognize the argument passed, #{e}"
+rescue ArgumentError => e
+  puts "Cannot recognize the argument passed, #{e}"
 end

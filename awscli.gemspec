@@ -1,29 +1,30 @@
-# Ensure we require the local version and not one we might have installed already
 require File.join([File.dirname(__FILE__),'lib','awscli','version.rb'])
+
 spec = Gem::Specification.new do |s|
   s.name = 'awscli'
   s.version = Awscli::VERSION
+  s.date = Date.today.to_s
   s.author = 'Ashrith'
-  s.email = 'ashrith@cloudwick.com'
-  s.homepage = 'http://ashrithr.github.com/awscli'
+  s.email = 'ashrith@me.com'
+  s.homepage = 'http://github.com/ashrithr/awscli'
   s.platform = Gem::Platform::RUBY
   s.summary = 'Command Line Interface for Amazon Web Services built in Ruby'
-# Add your other files here if you make them
-  s.files = %w(
-bin/awscli
-lib/awscli/version.rb
-lib/awscli.rb
-  )
+
+  #Files
+  #ensure gem is built out of versioned files
+  s.files = Dir['Rakefile', '{bin,lib,man,test,spec}/**/*', 'README*', 'LICENSE'] & `git ls-files -z`.split("\0")
   s.require_paths << 'lib'
   s.has_rdoc = true
   s.extra_rdoc_files = ['README.rdoc','awscli.rdoc']
   s.rdoc_options << '--title' << 'awscli' << '--main' << 'README.rdoc' << '-ri'
   s.bindir = 'bin'
   s.executables << 'awscli'
+
+  #Dependencies
   s.add_development_dependency('rake')
   s.add_development_dependency('rdoc')
   s.add_development_dependency('aruba')
-  s.add_runtime_dependency('thor')
-  s.add_runtime_dependency('fog')
+  s.add_runtime_dependency('thor', '>=0.17.0')
+  s.add_runtime_dependency('fog', '>=1.10.0')
   s.add_runtime_dependency('highline')
 end
