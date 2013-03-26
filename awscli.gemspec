@@ -7,7 +7,8 @@ spec = Gem::Specification.new do |s|
   s.email = 'ashrith@me.com'
   s.homepage = 'http://github.com/ashrithr/awscli'
   s.platform = Gem::Platform::RUBY
-  s.summary = 'Command Line Interface for Amazon Web Services built in Ruby'
+  s.summary = 'Command Line Interface for Amazon Web Services built in Ruby built for educational purposes'
+  s.description = '#{s.summary}, This gem is still in development.'
 
   #Files
   #ensure gem is built out of versioned files
@@ -15,8 +16,8 @@ spec = Gem::Specification.new do |s|
   s.test_files = `git ls-files -- {test,features}/*`.split("\n")
   s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths << 'lib'
-  s.has_rdoc = true
-  s.extra_rdoc_files = ['README.rdoc','awscli.rdoc']
+  # s.has_rdoc = true
+  # s.extra_rdoc_files = ['README.rdoc','awscli.rdoc']
   s.rdoc_options << '--title' << 'awscli' << '--main' << 'README.rdoc' << '-ri'
   s.bindir = 'bin'
 
