@@ -95,5 +95,145 @@ module Awscli
       end
     end
 
+    class Groups
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list options
+        if options[:table]
+          @@conn.groups.table([:id, :launch_configuration_name, :desired_capacity, :min_size, :max_size, :vpc_zone_identifier, :termination_policies])
+        else
+          #yaml dump
+          puts @@conn.describe_auto_scaling_groups.body['DescribeAutoScalingGroupsResult']['AutoScalingGroups'].to_yaml
+        end
+      end
+
+      def create options
+        # => validate & parse options
+        opts = Marshal.load(Marshal.dump(options))
+        #launch conf name
+        abort "Launch configuration name not found: #{options[:launch_configuration_name]}" unless @@conn.configurations.get(options[:launch_configuration_name])
+        #remove required options from options hash
+        opts.reject! { |k| k == 'id' }
+        opts.reject! { |k| k == 'availability_zones' }
+        opts.reject! { |k| k == 'launch_configuration_name' }
+        opts.reject! { |k| k == 'max_size' }
+        opts.reject! { |k| k == 'min_size' }
+        if desired_capacity = opts.delete(:desired_capacity)
+          opts.merge!('DesiredCapacity' => desired_capacity)
+        end
+        if default_cooldown = opts.delete(:default_cooldown)
+          opts.merge!('DefaultCooldown' => default_cooldown)
+        end
+        if health_check_grace_period = opts.delete(:health_check_grace_period)
+          opts.merge!('HealthCheckGracePeriod' => health_check_grace_period)
+        end
+        if health_check_type = opts.delete(:health_check_type)
+          opts.merge!('HealthCheckType' => health_check_type)
+        end
+        if load_balancer_names = opts.delete(:load_balancer_names)
+          opts.merge!('LoadBalancerNames' => load_balancer_names)
+        end
+        if placement_group = opts.delete(:placement_group)
+          opts.merge!('PlacementGroup' => placement_group)
+        end
+        if tags = opts.delete(:tags)
+          parsed_tags = Array.new
+          tags.each do |t|
+            abort "Invliad tags format, expecting 'key=value' format" unless t =~ /\S=\S/
+          end
+          tags.each do |tag|
+            parsed_tag = Hash.new
+            key, value = tag.split("=")
+            parsed_tag['Key'] = key
+            parsed_tag['Value'] = value
+            parsed_tags << parsed_tag
+          end
+          opts.merge!('Tags' => parsed_tags)
+        end
+        if termination_policies = opts.delete(:termination_policies)
+          opts.merge!('TerminationPolicies' => termination_policies)
+        end
+        if vpc_zone_identifiers = opts.delete(:vpc_zone_identifiers)
+          opts.merge!('VPCZoneIdentifier' => vpc_zone_identifiers.join(','))
+        end
+        begin
+          @@conn.create_auto_scaling_group(
+            options[:id],
+            options[:availability_zones],
+            options[:launch_configuration_name],
+            options[:max_size],
+            options[:min_size],
+            opts
+          )
+          puts "Created Auto Scaling Group with name: #{options[:id]}"
+        rescue Fog::AWS::AutoScaling::IdentifierTaken
+          puts "A auto-scaling-group already exists with the name #{options[:id]}"
+        rescue Fog::AWS::AutoScaling::ValidationError
+          puts "Validation Error: #{$!}"
+        end
+      end
+
+      def set_desired_capacity options
+        # => Sets the desired capacity of the auto sacling group
+        asg = @@conn.groups.get(options[:id])
+        abort "Cannot find Auto Scaling Group with name: #{options[:id]}" unless asg
+        min_size = asg.min_size
+        max_size = asg.max_size
+        abort "Desired capacity should fall in between auto scaling groups min-size: #{min_size} and max-size: #{max_size}" unless options[:desired_capacity].between?(min_size, max_size)
+        abort "Desired capacity is already #{asg.desired_capacity}" if options[:desired_capacity] == asg.desired_capacity
+        @@conn.set_desired_capacity(options[:id], options[:desired_capacity])
+        puts "Scaled Auto Scaling Group: #{options[:id]} to a desired_capacity of #{options[:desired_capacity]}"
+      end
+
+      # def update
+      #   asg = @@conn.groups.get(options[:id])
+      #   abort "Cannot find Auto Scaling Group with name: #{options[:id]}" unless asg
+      #   opts = Marshal.load(Marshal.dump(options))
+      #   opts.reject! { |k| k == 'id' }
+      #   asg.update(opts)
+      # end
+
+      def suspend_processes options
+        if options[:scaling_processes]
+          @@conn.suspend_processes(
+            options[:id],
+            'ScalingProcesses' => options[:scaling_processes])
+          puts "Suspending processes #{options[:scaling_processes]} for group: #{options[:id]}"
+        else
+          @@conn.suspend_processes(options[:id])
+          puts "Suspending processes for group: #{options[:id]}"
+        end
+      end
+
+      def resume_processes options
+        if options[:scaling_processes]
+          @@conn.resume_processes(
+            options[:id],
+            'ScalingProcesses' => options[:scaling_processes]
+            )
+          puts "Resuming processes #{options[:scaling_processes]} for group: #{options[:id]}"
+        else
+          @@conn.resume_processes(options[:id])
+          puts "Resuming processes for group: #{options[:id]}"
+        end
+      end
+
+      def delete options
+        if options[:force]
+          @@conn.groups.destroy(options[:id], options[:force])
+        else
+          @@conn.groups.destroy(options[:id])
+        end
+      end
+    end
+
+    class Instances
+    end
+
+    class Polocies
+    end
+
   end
 end
