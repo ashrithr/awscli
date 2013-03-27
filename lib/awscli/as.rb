@@ -221,11 +221,21 @@ module Awscli
       end
 
       def delete options
-        if options[:force]
-          @@conn.groups.destroy(options[:id], options[:force])
-        else
-          @@conn.groups.destroy(options[:id])
+        begin
+          if options[:force]
+            @@conn.delete_auto_scaling_group(
+              options[:id],
+              'ForceDelete' => options[:force]
+            )
+          else
+            @@conn.delete_auto_scaling_group(options[:id])
+          end
+        rescue Fog::AWS::AutoScaling::ResourceInUse
+          puts "You cannot delete an AutoScalingGroup while there are instances or pending Spot instance request(s) still in the group"
+          puts "Use -f option to force delete instances attached to the sacling group"
+          exit 1
         end
+        puts "Deleted Auto scaling group #{options[:id]}"
       end
     end
 
