@@ -7,8 +7,8 @@ spec = Gem::Specification.new do |s|
   s.email = 'ashrith@me.com'
   s.homepage = 'http://github.com/ashrithr/awscli'
   s.platform = Gem::Platform::RUBY
-  s.summary = 'Command Line Interface for Amazon Web Services built in Ruby built for educational purposes'
-  s.description = '#{s.summary}, This gem is still in development.'
+  s.summary = 'Command Line Interface for Amazon Web Services built in Ruby, using Fog and Thor'
+  s.description = "#{s.summary}, This gem is still in development."
 
   #Files
   #ensure gem is built out of versioned files

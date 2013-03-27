@@ -86,6 +86,37 @@ module Awscli
           abort "Invalid AvailabilityZone: #{options[:availability_zone]}" unless available_zones.include?(options[:availability_zone])
         end
         opts = Marshal.load(Marshal.dump(options))
+        block_device_mapping = Array.new
+        #validate block device mapping and parse it to a hash understandable by fog
+        if options[:block_device_mapping]
+          options[:block_device_mapping].each do |group|
+            mapping = Hash.new
+            #parse options
+            abort "Invalid block device mapping format, expecting 'devicename=blockdevice' format" unless group =~ /\S=\S/
+            device_name, block_device = group.split("=")
+            abort "Invalid device name, expectiing '/dev/sd[a-z]'" unless device_name =~ /^\/dev\/sd[a-z]$/
+            abort "Invalud block device format, expecting 'ephemeral[0..3]|none|[snapshot-id]:[volume-size]:[true|false]:[standard|io1[:iops]]'" unless block_device =~ /^(snap-.*|ephemeral\w{1,3}|none|:.*)$/
+            mapping['DeviceName'] = device_name
+            case block_device
+            when 'none'
+              mapping['Ebs.NoDevice'] = 'true'
+            when /ephemeral/
+              mapping['VirtualName'] = block_device
+            when /snap-.*|:.*/
+              snapshot_id, volume_size, delete_on_termination, volume_type, iops = block_device.split(":")
+
+              mapping['Ebs.SnapshotId'] = snapshot_id if !snapshot_id.nil? && !snapshot_id.empty?
+              mapping['Ebs.VolumeSize'] = volume_size if !volume_size.nil? && !volume_size.empty?
+              mapping['Ebs.DeleteOnTermination'] = delete_on_termination if !delete_on_termination.nil? && !delete_on_termination.empty?
+            else
+              abort "Cannot validate block_device"
+            end
+            block_device_mapping << mapping
+          end
+        end
+        if block_devices = opts.delete(:block_device_mapping)
+          opts.merge!(:block_device_mapping => block_device_mapping)
+        end
         wait_for_server = options[:wait_for] && opts.reject! { |k| k == 'wait_for' }
         puts "Validating Options ... OK"
         puts "Creating Server"

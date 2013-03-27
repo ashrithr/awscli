@@ -41,4 +41,8 @@ module AwsCli
   require 'awscli/cli/s3'
   require 'awscli/cli/s3/files'
   require 'awscli/cli/s3/directories'
+    #AS
+  require 'awscli/cli/as'
+  require 'awscli/cli/as/activities'
+  require 'awscli/cli/as/configurations'
 end

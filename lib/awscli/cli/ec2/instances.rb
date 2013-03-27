@@ -113,15 +113,36 @@ module AwsCli
 
         desc "create", "ec2_run_instances"
         long_desc <<-LONGDESC
-          Launch an instance of a specified AMI.\x5
-          Usage Examples:\x5
-          awscli ec2 instances create -i 'ami-xxxxxxx' -b '{:DeviceName => '/dev/sdg', :VirtualName => 'ephemeral0'}' -g 'default' -t 'm1.small' -k 'default' --tags=name:testserver
+          Launch an instance of a specified AMI.
+
+          Usage Examples:
+
+          `awscli ec2 instances create -i ami-b63210f3 -k ruby-sample-1363113606 -b "/dev/sdb=ephemeral10" "/dev/sdc=snap-xxxxx::false::"`
+
+          `awscli ec2 instances create -i ami-b63210f3 -k ruby-sample-1363113606 -b "/dev/sdb=ephemeral10" "/dev/sdc=:10:false::"`
+
+          Block Device Mapping Format:
+          This argument is passed in the form of <devicename>=<blockdevice>. The devicename is the device name of the physical device on the instance to map. The blockdevice can be one of the following values:
+
+          none - supportsesses an existing mapping of the device from the AMI used to launch the instance. For example: "/dev/sdc=none"
+
+          ephemeral[0..3] - An instance store volume to be mapped to the device. For example: "/dev/sdc=ephemeral0"
+
+          [snapshot-id]:[volume-size]:[true|false]:[standard|io1[:iops]] - An EBS volume to be mapped to the device.
+          [snapshot-id] To create a volume from a snapshot, specify the snapshot ID.
+          [volume-size] To create an empty EBS volume, omit the snapshot ID and specify a volume size instead.
+          For example: "/dev/sdh=:20".
+          [delete-on-termination] To prevent the volume from being deleted on termination of the instance, specify false.
+          The default is true.
+          [volume-type] To create a Provisioned IOPS volume, specify io1. The default volume type is standard.
+          If the volume type is io1, you can also provision the number of IOPS that the volume supports.
+          For example, "/dev/sdh=snap-7eb96d16::false:io1:500"
         LONGDESC
         method_option :image_id,             :aliases => "-i", :required => true, :banner => "AMIID", :type => :string, :desc => "Id of machine image to load on instances"
         method_option :availability_zone,    :banner => "ZONE", :type => :string, :desc => "Placement constraint for instances"
         method_option :placement_group,      :banner => "GROUP", :type => :string, :desc => "Name of existing placement group to launch instance into"
         method_option :tenancy,              :banner => "TENANCY", :type => :string, :desc => "Tenancy option in ['dedicated', 'default'], defaults to 'default'"
-        method_option :block_device_mapping, :aliases => "-b", :type => :array , :desc => "hashes of device mappings, see help for how to pass values"
+        method_option :block_device_mapping, :aliases => "-b", :type => :array , :desc => "<devicename>=<blockdeveice>, see help for how to pass values"
         method_option :client_token,         :type => :string, :desc => "unique case-sensitive token for ensuring idempotency"
         method_option :groups,               :aliases => "-g", :banner => "SG1 SG2 SG3",:type => :array, :default => ["default"], :desc => "Name of security group(s) for instances (not supported for VPC). Default: 'default'"
         method_option :flavor_id,            :aliases => "-t",:type => :string, :default => "m1.small", :desc => "Type of instance to boot."
@@ -136,7 +157,7 @@ module AwsCli
         method_option :tags,                 :type => :hash, :default => {'Name' => "awscli-#{Time.now.to_i}"}, :desc => "Tags to identify server"
         method_option :private_ip_address,   :banner => "IP",:type => :string, :desc => "VPC option to specify ip address within subnet"
         method_option :wait_for,             :aliases => "-w", :type => :boolean, :default => false, :desc => "wait for the server to get created and return public_dns"
-       def create
+        def create
           create_ec2_object
           @ec2.create_instance options
         end

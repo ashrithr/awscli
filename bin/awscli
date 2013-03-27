@@ -18,8 +18,8 @@ begin
   AwsCli::Cli.start
 rescue Interrupt
   puts "Caught Interrupt, Exiting..."
-rescue Excon::Errors::SocketError => e
-  puts "Error: Establishing Connection to AWS, #{e}"
+rescue Excon::Errors::SocketError
+  puts "Error: Establishing Connection to AWS, #{$!}"
 rescue Fog::Compute::AWS::Error
   puts "Error: #{$!}"
 rescue Fog::Compute::AWS::NotFound
@@ -27,6 +27,6 @@ rescue Fog::Compute::AWS::NotFound
 rescue Excon::Errors::InternalServerError
   puts "Something went wrong, please try again!."
   puts "Error: #{$!}"
-rescue ArgumentError => e
-  puts "Cannot recognize the argument passed, #{e}"
+rescue ArgumentError
+  puts "Cannot recognize the argument passed, #{$!}"
 end
