@@ -275,9 +275,13 @@ module Awscli
         puts "Created auto sacling policy: #{options[:id]}, for auto scaling group: #{options[:auto_scaling_group_name]}"
       end
 
-      def destroy options
-        @@conn.policies.destroy(options)
-        puts "Deleted auto scaling policy: #{options[:id]}"
+      def destroy name, group_name
+        begin
+          @@conn.delete_policy(group_name, name)
+          puts "Deleted auto scaling policy: #{name}"
+        rescue Fog::AWS::AutoScaling::ValidationError
+          puts "Validation Error: #{$!}"
+        end
       end
     end
 

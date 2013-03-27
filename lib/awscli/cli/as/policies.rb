@@ -23,10 +23,10 @@ module AwsCli
 
         desc "delete", "Deletes a policy created by put_scaling_policy"
         method_option :id, :aliases => "-n", :banner => "NAME", :required => true, :desc => "The name of the policy you want to delete"
-        method_option :auto_scaling_group_name, :aliases => "-g", :required => true, :desc => "name of the auto scaling group"
+        method_option :auto_scaling_group_name, :banner => "NAME", :aliases => "-g", :required => true, :desc => "name of the auto scaling group"
         def delete
           create_as_object
-          @as.delete options
+          @as.destroy options[:id], options[:auto_scaling_group_name]
         end
 
         private

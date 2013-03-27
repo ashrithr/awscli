@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    awscli (0.0.3)
+    awscli (0.0.4)
       fog (>= 1.10.0)
       highline
       thor (>= 0.17.0)
