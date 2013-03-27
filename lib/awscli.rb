@@ -46,4 +46,6 @@ module AwsCli
   require 'awscli/cli/as/activities'
   require 'awscli/cli/as/configurations'
   require 'awscli/cli/as/groups'
+  require 'awscli/cli/as/instances'
+  require 'awscli/cli/as/policies'
 end

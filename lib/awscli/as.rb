@@ -81,7 +81,7 @@ module Awscli
 
         begin
           cfgs = @@conn.create_launch_configuration(options[:image_id], options[:instance_type], options[:id], opts)
-          puts "Created Launch Configuration, #{cfgs.body['ResponseMetadata']['ac678d01-967a-11e2-a40a-d316dcab3807']}"
+          puts "Created Launch Configuration, #{options[:id]}"
         rescue Fog::AWS::AutoScaling::IdentifierTaken
           puts "A launch configuration already exists with the name #{options[:id]}"
         end
@@ -240,9 +240,45 @@ module Awscli
     end
 
     class Instances
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.instances.table
+      end
+
+      def terminate instance_id, decrement_capacity
+        instance = @@conn.instances.get(instance_id)
+        abort "Cannot find instace with id: #{instance_id}" unless instance
+        begin
+          @@conn.terminate_instance_in_auto_scaling_group(instance_id, decrement_capacity)
+          puts "Terminated Instance with id: #{instance_id}"
+          puts "Decrement Capacity of the scaling group: #{instance.auto_scaling_group_name} by 1" if decrement_capacity
+        rescue Fog::AWS::AutoScaling::ValidationError
+          puts "Validation Error: #{$!}"
+        end
+      end
     end
 
-    class Polocies
+    class Policies
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list
+        @@conn.policies.table
+      end
+
+      def create options
+        @@conn.policies.create(options)
+        puts "Created auto sacling policy: #{options[:id]}, for auto scaling group: #{options[:auto_scaling_group_name]}"
+      end
+
+      def destroy options
+        @@conn.policies.destroy(options)
+        puts "Deleted auto scaling policy: #{options[:id]}"
+      end
     end
 
   end
