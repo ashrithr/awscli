@@ -1,5 +1,6 @@
 module Awscli
   module S3
+    require 'thread'
 
     class Files
       def initialize connection, options = {}
@@ -78,8 +79,72 @@ module Awscli
       def delete dir_name
         dir = @@conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
+        #check if the dir is empty or not
+        abort "Bucket is not empty, use rec_delete to force delete bucket" if dir.files.length != 0
         dir.destroy
         puts "Deleted Bucket: #{dir_name}"
+      end
+
+      def delete_rec dir_name
+        #Forked from https://gist.github.com/bdunagan/1383301
+        data_queue = Queue.new
+        semaphore = Mutex.new
+        threads = Array.new
+        total_listed = 0
+        total_deleted = 0
+        thread_count = 20 #num_of_threads to perform deletion
+        dir = @@conn.directories.get(dir_name)
+        abort "Cannot find bucket #{dir_name}" unless dir
+        if dir.files.length != 0
+          if agree("Are you sure want to delete all the objects in the bucket ?  ", true)
+            puts
+            puts "==Deleting all the files in '#{dir_name}'=="
+            #fetch files in the bucket
+            threads << Thread.new do
+              Thread.current[:name] = "get files"
+              puts "...started thread '#{Thread.current[:name]}'...\n"
+              # Get all the files from this bucket. Fog handles pagination internally
+              dir.files.all.each do |file|
+                data_queue.enq(file) #add the file into the queue
+                total_listed += 1
+              end
+              # Add a final EOF message to signal the deletion threads to stop.
+              thread_count.times {data_queue.enq(:EOF)}
+            end
+            # Delete all the files in the queue until EOF with N threads.
+            thread_count.times do |count|
+              threads << Thread.new(count) do |number|
+                Thread.current[:name] = "delete files(#{number})"
+                puts "...started thread '#{Thread.current[:name]}'...\n"
+                # Dequeue until EOF.
+                file = nil
+                while file != :EOF
+                  # Dequeue the latest file and delete it. (Will block until it gets a new file.)
+                  file = data_queue.deq
+                  file.destroy if file != :EOF
+                  # Increment the global synchronized counter.
+                  semaphore.synchronize {total_deleted += 1}
+                  puts "Deleted #{total_deleted} out of #{total_listed}\n" if (rand(100) == 1)
+                end
+              end
+            end
+            # Wait for the threads to finish.
+            threads.each do |t|
+              begin
+                t.join
+              rescue RuntimeError => e
+                puts "Failure on thread #{t[:name]}: #{e.message}"
+              end
+            end
+            #finally delete the bucket it self
+            dir.destroy
+            puts "Deleted bucket: #{dir_name} and all its contents"
+          end
+        else
+          #empty bucket
+          dir.destroy
+          puts "Deleted bucket: #{dir_name}"
+        end
       end
 
       def get_acl dir_name

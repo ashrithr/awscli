@@ -3,7 +3,7 @@ begin
   require 'thor'
   require 'thor/group'
   require 'fog'
-  require 'highline'
+  require 'highline/import'
   require 'yaml'
 rescue LoadError
   puts "Failed to load gems: fog, highline, thor"

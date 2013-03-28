@@ -26,6 +26,13 @@ module AwsCli
           @s3.delete options[:key]
         end
 
+        desc "delete_rec", "Delete the bucket and all its contents"
+        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to delete"
+        def delete_rec
+          create_s3_object
+          @s3.delete_rec options[:key]
+        end
+
         desc "set_acl", "Change access control list for an S3 bucket"
         method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to change acl"
         method_option :acl, :aliases => "-a", :type => :string, :required => true, :desc => "Permissions, must be in ['private', 'public-read', 'public-read-write', 'authenticated-read']"
