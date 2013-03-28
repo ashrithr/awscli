@@ -6,7 +6,7 @@ module AwsCli
 
         # default_task :list
 
-        desc "list", "ec2_describe_instances"
+        desc "list", "lise the instances"
         long_desc <<-LONGDESC
          List and describe your instances
          The INSTANCE parameter is the instance ID(s) to describe.
@@ -19,7 +19,7 @@ module AwsCli
           @ec2.list_instances
         end
 
-        desc "diatt", "ec2_describe_instance_attribute"
+        desc "diatt", "list instance attributes"
         long_desc <<-LONGDESC
           Describes the specified attribute of the specified instance. You can specify only one attribute at a time.
           \x5
@@ -38,7 +38,7 @@ module AwsCli
         end
 
 
-        desc "miatt", "ec2_modify_instance_attribute"
+        desc "miatt", "modify instance attributes"
         long_desc <<-LONGDESC
           Modifies an instance attribute. Only one attribute can be specified per call.
         LONGDESC
@@ -64,7 +64,7 @@ module AwsCli
 
         end
 
-        desc "riatt", "ec2_reset_instance_attribute"
+        desc "riatt", "reset instances attribute(s)"
         long_desc <<-LONGDESC
           Resets an instance attribute to its initial value. Only one attribute can be specified per call.
         LONGDESC
@@ -90,17 +90,17 @@ module AwsCli
           @ec2.describe_instance_status options[:instance_id]
         end
 
-        desc "import", "ec2_import_instance"
-        long_desc <<-LONGDESC
-          Create an import instance task to import a virtual machine into EC2
-          using meta_data from the given disk image. The volume size for the
-          imported disk_image will be calculated automatically, unless specified.
-        LONGDESC
-        def import
-          puts "Cannot find it in the *FOG*"
-        end
+        # desc "import", "ec2_import_instance"
+        # long_desc <<-LONGDESC
+        #   Create an import instance task to import a virtual machine into EC2
+        #   using meta_data from the given disk image. The volume size for the
+        #   imported disk_image will be calculated automatically, unless specified.
+        # LONGDESC
+        # def import
+        #   puts "Cannot find it in the *FOG*"
+        # end
 
-        desc "reboot", "ec2_reboot_instances"
+        desc "reboot", "reboot an instance"
         long_desc <<-LONGDESC
          Reboot selected running instances.
          The INSTANCE parameter is an instance ID to reboot.
@@ -111,7 +111,7 @@ module AwsCli
           @ec2.reboot_instance options[:instance_id]
         end
 
-        desc "create", "ec2_run_instances"
+        desc "create", "launch a new instance"
         long_desc <<-LONGDESC
           Launch an instance of a specified AMI.
 
@@ -162,7 +162,7 @@ module AwsCli
           @ec2.create_instance options
         end
 
-        desc "start", "ec2_start_instances"
+        desc "start", "start instances"
         long_desc <<-LONGDESC
           Start selected running instances.
         LONGDESC
@@ -172,7 +172,7 @@ module AwsCli
           @ec2.start_instance options[:instance_id]
         end
 
-        desc "stop", "ec2_stop_instances"
+        desc "stop", "stop instances"
         long_desc <<-LONGDESC
           Stop selected running instances.
         LONGDESC
@@ -182,7 +182,7 @@ module AwsCli
           @ec2.stop_instance options[:instance_id]
         end
 
-        desc "kill", "ec2_terminate_instances"
+        desc "terminate", "teminate instances"
         long_desc <<-LONGDESC
           Terminate selected running instances
         LONGDESC

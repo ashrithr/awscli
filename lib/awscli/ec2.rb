@@ -176,8 +176,12 @@ module Awscli
       def terminate_instance instance_id
         response = @@conn.servers.get(instance_id)
         abort "InstanceId Not found :#{instance_id}" unless response
-        response.destroy
-        puts "Terminsted Instance: #{instance_id}"
+        unless response.state == 'terminated'
+          response.destroy
+          puts "Terminated Instance: #{instance_id}"
+        else
+          puts "Instance is already in terminated state"
+        end
       end
 
       def get_console_output instance_id
