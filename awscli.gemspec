@@ -28,4 +28,7 @@ spec = Gem::Specification.new do |s|
   s.add_runtime_dependency('thor', '>=0.17.0')
   s.add_runtime_dependency('fog', '>=1.10.0')
   s.add_runtime_dependency('highline')
+
+  s.license = 'MIT'
+  s.post_install_message = "Thanks for installing!, This gem is still in development."
 end
