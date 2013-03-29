@@ -6,7 +6,7 @@ module AwsCli
 
         # default_task :list
 
-        desc "list", "lise the instances"
+        desc "list", "list the instances"
         long_desc <<-LONGDESC
          List and describe your instances
          The INSTANCE parameter is the instance ID(s) to describe.
@@ -72,7 +72,7 @@ module AwsCli
           puts "Not yet Implemented"
         end
 
-        desc "dins", "ec2_describe_instance_status"
+        desc "dins", "describe instance status"
         long_desc <<-LONGDESC
          Describe the status for one or more instances.
          Checks are performed on your instances to determine if they are

@@ -20,7 +20,7 @@ module Awscli
     def self.missing_environment_variable
       message = <<-ERRMSG1.gsub(/^ {8}/, '')
         Missing AWSCLI_CONFIG_FILE environment variable
-        Please export the variable 'export AWSCLI_CONFIG_FILE="~/awscli_config.yml'
+        Please export the variable 'export AWSCLI_CONFIG_FILE="~/awscli_config.yml"'
         Contents of the file should be:
         #########################################
         #Aws Credentials
