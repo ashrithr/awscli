@@ -36,7 +36,6 @@ module AwsCli
           @s3.delete_file options[:bucket_name], options[:file_name]
         end
 
-        # s3.directories.get('arun123').files.get('block_9091299035346850259').copy('ashrithtst', 'testfile')
         desc "copy", "copy object from one bucket to another"
         method_option :source_bucket, :aliases => "-s", :required => true, :desc => "source bucket name from where to copy the file"
         method_option :source_file, :aliases => "-f", :required => true, :desc => "source file name to copy"

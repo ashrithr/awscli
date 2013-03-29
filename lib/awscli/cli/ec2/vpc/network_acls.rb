@@ -15,7 +15,11 @@ module AwsCli
 
           def create_ec2_object
             puts "ec2 Establishing Connetion..."
-            $ec2_conn = Awscli::Connection.new.request_ec2
+            $ec2_conn = if parent_options[:region]
+                          Awscli::Connection.new.request_ec2(parent_options[:region])
+                        else
+                          Awscli::Connection.new.request_ec2
+                        end
             puts "ec2 Establishing Connetion... OK"
             @ec2 = Awscli::EC2::NetworkAcl.new($ec2_conn)
           end

@@ -22,11 +22,18 @@ module Awscli
       end
     end
 
-    def request_ec2
+    def request_ec2 region=nil
       # => returns AWS Compute connection object
       @@config.merge!(:provider => 'AWS')
-      if @@config['region']
-        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@@config['region'])
+      if region
+        #if user passes a region optionally
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(region)
+        @@config.reject!{ |k| k == 'region' } if @@config['region']
+        @@config.merge!(:region => region)
+      else
+        if @@config['region']
+          Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@@config['region'])
+        end
       end
       Fog::Compute.new(@@config)
     end

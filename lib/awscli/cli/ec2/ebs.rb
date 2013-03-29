@@ -46,6 +46,15 @@ module AwsCli
           @ec2.delete_volume options
         end
 
+        desc "delete_detached", "Delete all the volumes that are not in use"
+        def delete_detached
+          if agree("Are you sure want to delete all the all volumes that are not in use ?  ")
+            puts
+            create_ec2_object
+            @ec2.delete_detached
+          end
+        end
+
         desc "create_snapshot", "Create a snapshot from volume"
         method_option :volume_id, :aliases => "-v", :banner => "VID", :required => true, :type => :string, :desc => "volume to make a snapshot from"
         def create_snapshot
@@ -72,7 +81,11 @@ module AwsCli
 
         def create_ec2_object
           puts "ec2 Establishing Connetion..."
-          $ec2_conn = Awscli::Connection.new.request_ec2
+          $ec2_conn = if parent_options[:region]
+                        Awscli::Connection.new.request_ec2(parent_options[:region])
+                      else
+                        Awscli::Connection.new.request_ec2
+                      end
           puts "ec2 Establishing Connetion... OK"
           @ec2 = Awscli::EC2::Ebs.new($ec2_conn)
         end

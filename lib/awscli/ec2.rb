@@ -482,6 +482,18 @@ module Awscli
         puts "Deleted volume: #{options[:volume_id]}"
       end
 
+      def delete_detached
+        vols  = @@conn.volumes.all('status' => 'available')
+        unless vols.empty?
+          puts "Deleting all volumes which are not in use ..."
+          vols.each do |vol|
+            vol.destroy
+          end
+        else
+          puts "No volumes found, that are not in use found"
+        end
+      end
+
       def create_snapshot options
         abort "Cannot find volume: #{options[:volume_id]}" unless @@conn.volumes.get(options[:volume_id])
         @@conn.snapshots.create(options)

@@ -63,7 +63,7 @@ module Awscli
     end
 
     def self.invalid_region
-      message = "Invalid region found in config file , Available Regions #{Awscli::Instances::REGIONS}"
+      message = "Invalid region found in config file (or) passed as an option , Available Regions are #{Awscli::Instances::REGIONS}"
       raise(Awscli::Errors::LoadError.new(message))
     end
 
