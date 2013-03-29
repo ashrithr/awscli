@@ -19,6 +19,17 @@ module AwsCli
           @s3.upload_file options[:bucket_name], options[:file_path]
         end
 
+        desc "put_rec", "put a directory recusively into a specified bucket using multiple threads"
+        method_option :bucket_name, :aliases => "-b", :required => true, :desc => "name of the bucker to upload the dir to"
+        method_option :dir_path, :aliases => "-p", :required => true, :desc => "path of the dir to upload"
+        method_option :dest_path, :aliases => "-d", :desc => "optionally specify destination directory path to create"
+        method_option :thread_count, :aliases => "-t", :type => :numeric, :default => 5, :desc => "number of threads to use to upload files"
+        method_option :public, :type => :boolean, :default => false, :desc => "set ACL of files to public"
+        def put_rec
+          create_s3_object
+          @s3.upload_file_rec options
+        end
+
         desc "get", "get a file from a bucket"
         method_option :bucket_name, :aliases => "-b", :required => true, :desc => "name of the bucket to download the file from"
         method_option :file_name, :aliases => "-f", :required => true, :desc => "name of file to download"

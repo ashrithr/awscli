@@ -30,6 +30,59 @@ module Awscli
         puts "Uploaded file: #{file_name} to bucket: #{dir_name}"
       end
 
+      def upload_file_rec options
+        dir_name, dir_path, threads_count, is_public = options[:bucket_name], options[:dir_path], options[:thread_count], options[:public]
+        dest_path = options[:dest_path] if options[:dest_path]
+        #check if bucket exists
+        bucket = @@conn.directories.get(dir_name)
+        abort "cannot find bucket: #{dir_name}" unless bucket
+        #check if passed path is a dir
+        dir = File.expand_path(dir_path)
+        abort "dir_path must be a dir" unless File.directory?(dir)
+        #add trailing slash to detination dir if is not passed
+        if dest_path && !dest_path.end_with?('/')
+          dest_path = "#{dest_path}/"
+        end
+        #remove trailing / from dir_path
+        dir = dir.chop if dir.end_with?('/')
+        #initializations
+        total_size = 0
+        files = Queue.new
+        threads = Array.new
+        semaphore = Mutex.new
+        file_number = 0
+
+        Dir.glob("#{dir}/**/*").select { |f| !File.directory?(f) }.each do |file|
+          files << file
+          total_size += File.size(file)
+        end
+
+        total_files = files.size
+        puts "Starting Upload using #{threads_count} threads"
+        threads_count.times do |count|
+          threads << Thread.new do
+            # Thread.current[:name] = "upload files #{count}"
+            # puts "...started thread '#{Thread.current[:name]}'...\n"
+            while not files.empty?
+              semaphore.synchronize do
+                file_number += 1
+              end
+              file = files.pop
+              key = file.gsub(dir, '')[1..-1]
+              dest = "#{dest_path}#{key}"
+              puts "[#{file_number}/#{total_files}] Uploading #{key} to s3://#{dir_name}/#{dest}"
+              bucket.files.create(
+                  :key => dest,
+                  :body => File.open(file),
+                  :public => is_public
+                )
+            end
+          end
+        end
+        threads.each { |t| t.join }
+        puts "Uploaded #{total_files} (#{total_size / 1024} KB)"
+      end
+
       def download_file dir_name, file_name, path
         dir = @@conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir

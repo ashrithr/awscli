@@ -5,3 +5,4 @@ Gemfile.lock
 test/tmp
 test/version_tmp
 tmp
+change.log
