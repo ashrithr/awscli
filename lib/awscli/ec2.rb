@@ -381,7 +381,8 @@ module Awscli
         if filter.nil?
           @@conn.images.all.table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
         else
-          @@conn.images.all(filter).table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
+          data = @@conn.images.all(filter)
+          data.empty? ? puts("No AMI's found for provided filters") : data.table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
         end
       end
 
@@ -422,6 +423,11 @@ module Awscli
         @@conn.images.all('owner-alias' => 'amazon').table([:architecture, :id, :is_public, :platform, :root_device_type, :state])
       end
 
+      def list_self
+        response = @@conn.describe_images({'Owner' => 'self'}).body['imagesSet']
+        Formatador.display_table(response, ['architecture', 'imageId', 'isPublic', 'name', 'imageState', 'rootDeviceType', 'imageType'])
+      end
+
       def create_image_from_instance options
         abort "Invalid Instace: #{options[:instance_id]}" unless @@conn.servers.get(options[:instance_id])
         @@conn.create_image(
@@ -431,6 +437,13 @@ module Awscli
             options[:no_reboot]
           )
         puts "Created image from instance: #{options[:instance_id]}"
+      end
+
+      def deregister image_id
+        image = @@conn.images.get(image_id)
+        abort "Cannot find image with id: #{image_id}" unless image
+        @@conn.deregister_image(image_id)
+        say "De-registerd image: <%= color('#{image_id}', :green) %>"
       end
 
     end # => AMI
@@ -485,12 +498,14 @@ module Awscli
       def delete_detached
         vols  = @@conn.volumes.all('status' => 'available')
         unless vols.empty?
-          puts "Deleting all volumes which are not in use ..."
-          vols.each do |vol|
-            vol.destroy
+          if agree("Are you sure want to delete all the all volumes that are not in use ?  ")
+            puts "Deleting all volumes which are not in use ..."
+            vols.each do |vol|
+              vol.destroy
+            end
           end
         else
-          puts "No volumes found, that are not in use found"
+          puts "No volumes found, that are 'not in use'"
         end
       end
 
@@ -501,7 +516,7 @@ module Awscli
       end
 
       def copy_snapshot options
-        abort "Cannot find snapshot: #{options[:snapshot_id]}" unless @@conn.snapshots.get(options[:snapshot_id])
+        # abort "Cannot find snapshot: #{options[:snapshot_id]}" unless @@conn.snapshots.get(options[:snapshot_id])
         @@conn.copy_snapshot(options[:snapshot_id], options[:source_region])
         puts "Copied snapshot"
       end
@@ -510,7 +525,7 @@ module Awscli
         snap = @@conn.snapshots.get(options[:snapshot_id])
         abort "Cannot find snapshot: #{options[:snapshot_id]}" unless snap
         snap.destroy
-        puts "Destroyed snapshot"
+        puts "Deleted snapshot"
       end
     end # => EBS
 

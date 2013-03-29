@@ -4,16 +4,19 @@ module AwsCli
       require 'awscli/cli/ec2'
       class Ami < Thor
 
-        desc "list", "List Images"
+        desc "list [OPTIONS]", "List Images"
         method_option :filter, :aliases => "-f", :type => :hash, :desc => "filter the images based on filters"
         method_option :amazon_owned, :aliases => "-a", :type => :boolean, :default => false, :desc => "lists amazon owned images"
         method_option :show_filters, :aliases => "-s", :type => :boolean, :default => false, :desc => "filters available"
+        method_option :self_owned, :aliases => "-o", :type => :boolean, :default => false, :desc => "list self owned images"
         def list
           create_ec2_object
           if options[:amazon_owned]
             @ec2.list_amazon
           elsif options[:show_filters]
             @ec2.show_filters
+          elsif options[:self_owned]
+            @ec2.list_self
           else
             @ec2.list options[:filter]
           end
@@ -28,6 +31,14 @@ module AwsCli
           create_ec2_object
           @ec2.create_image_from_instance options
         end
+
+        desc "deregister", "Deregisters the specified AMI. Once deregistered, the AMI cannot be used to launch new instances"
+        method_option :image_id, :aliases => "-i", :type => :string, :required => true, :desc => "ID of the AMI to deregister"
+        def deregister
+          create_ec2_object
+          @ec2.deregister options[:image_id]
+        end
+
 
         private
 

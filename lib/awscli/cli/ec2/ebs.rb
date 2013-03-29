@@ -4,7 +4,7 @@ module AwsCli
       require 'awscli/cli/ec2'
       class Ebs < Thor
 
-        desc "list", "List ELastic Block Storages"
+        desc "list [OPTIONS]", "List ELastic Block Storages"
         method_option :snapshots, :aliases => "-s", :type => :boolean, :default => false, :desc => "list snapshots"
         def list
           create_ec2_object
@@ -48,18 +48,15 @@ module AwsCli
 
         desc "delete_detached", "Delete all the volumes that are not in use"
         def delete_detached
-          if agree("Are you sure want to delete all the all volumes that are not in use ?  ")
-            puts
-            create_ec2_object
-            @ec2.delete_detached
-          end
+          create_ec2_object
+          @ec2.delete_detached
         end
 
         desc "create_snapshot", "Create a snapshot from volume"
         method_option :volume_id, :aliases => "-v", :banner => "VID", :required => true, :type => :string, :desc => "volume to make a snapshot from"
         def create_snapshot
           create_ec2_object
-          @ec2.create_snapshot
+          @ec2.create_snapshot options
         end
 
         desc "copy_snapshot", "Copy a snapshot to a different region"
@@ -67,7 +64,7 @@ module AwsCli
         method_option :snapshot_id, :aliases => "-i", :banner => "ID", :required => true, :type => :string, :desc => "Id of the snapshot"
         def copy_snapshot
           create_ec2_object
-          @ec2.copy_snapshot
+          @ec2.copy_snapshot options
         end
 
         desc "delete_snapshot", "Delete SnapShot"
