@@ -11,52 +11,52 @@ module AwsCli
         end
 
         desc "create", "Create an new S3 bucket"
-        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to create(name should be globally unique)"
+        method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket to create(name should be globally unique)"
         method_option :public, :aliases => "-p", :type => :boolean, :default => false, :desc => "makes the bucket publicly availble"
         # method_option :x_amz_acl, :aliases => "-x", :type => :string, :desc => "Permissions, must be in ['private', 'public-read', 'public-read-write', 'authenticated-read']"
         def create
           create_s3_object
-          @s3.create options
+          @s3.create options[:bucket], options[:public]
         end
 
         desc "delete", "Delete existing S3 bucket"
-        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to delete"
+        method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket to delete"
         def delete
           create_s3_object
-          @s3.delete options[:key]
+          @s3.delete options[:bucket]
         end
 
         desc "delete_rec", "Delete the bucket and all its contents"
-        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to delete"
+        method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket to delete"
         def delete_rec
           create_s3_object
-          @s3.delete_rec options[:key]
+          @s3.delete_rec options[:bucket]
         end
 
         desc "set_acl", "Change access control list for an S3 bucket"
-        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to change acl"
+        method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket to change acl"
         method_option :acl, :aliases => "-a", :type => :string, :required => true, :desc => "Permissions, must be in ['private', 'public-read', 'public-read-write', 'authenticated-read']"
         def set_acl
           create_s3_object
-          @s3.set_acl options[:key], options[:acl]
+          @s3.set_acl options[:bucket], options[:acl]
         end
 
         desc "get_acl", "Get access control list for an S3 bucket"
-        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket to get acl"
+        method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket to get acl"
         def get_acl
           create_s3_object
-          @s3.get_acl options[:key]
+          @s3.get_acl options[:bucket]
         end
 
         desc "get_logging_status", "Get logging status for an S3 bucket"
-        method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket"
+        method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket"
         def get_logging_status
           create_s3_object
-          @s3.get_logging_status options[:key]
+          @s3.get_logging_status options[:bucket]
         end
 
         # desc "set_logging_status", "Change logging status for an S3 bucket"
-        # method_option :key, :aliases => "-k", :type => :string, :required => true, :desc => "name of the bucket"
+        # method_option :bucket, :aliases => "-b", :type => :string, :required => true, :desc => "name of the bucket"
         # method_option :owner, :aliases => "-o", :type => :hash, :banner => "ID:NAME", :desc => "set id and displayname of the owner"
         # method_option :grantee, :aliases => "-g", :type => :hash, :banner => "NAME:ID|EMAIL|URI", :desc => "Grantee hash containing, <Display name of the grantee>: <ID of the grantee (or) Email of the grantee (or) Uri of the group to grant access>"
         # method_option :permission, :aliases => "-p", :type => :string, :desc => "Permission, in [FULL_CONTROL, WRITE, WRITE_ACP, READ, READ_ACP]"
@@ -69,7 +69,7 @@ module AwsCli
         #   logging_status['AccessControlList'] = acl if acl
         #   puts "Empty logging_status will disable logging" if logging_status.nil?
         #   puts "#{logging_status}"
-        #   @s3.set_logging_status options[:key], logging_status
+        #   @s3.set_logging_status options[:bucket], logging_status
         # end
 
         private

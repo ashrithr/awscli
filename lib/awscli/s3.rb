@@ -124,9 +124,12 @@ module Awscli
         @@conn.directories.table
       end
 
-      def create options
-        dir = @@conn.directories.create(options)
-        puts "Create bucket: #{dir.key}"
+      def create bucket_name, is_public
+        dir = @@conn.directories.create(
+          :key => bucket_name,
+          :public => is_public
+        )
+        puts "Created bucket: #{dir.key}"
       end
 
       def delete dir_name
