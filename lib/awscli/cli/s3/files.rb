@@ -20,7 +20,7 @@ module AwsCli
         end
 
         desc "put_rec", "put a directory recusively into a specified bucket using multiple threads"
-        method_option :bucket_name, :aliases => "-b", :required => true, :desc => "name of the bucker to upload the dir to"
+        method_option :bucket_name, :aliases => "-b", :required => true, :desc => "name of the bucket to upload the dir to"
         method_option :dir_path, :aliases => "-p", :required => true, :desc => "path of the dir to upload"
         method_option :dest_path, :aliases => "-d", :desc => "optionally specify destination directory path to create"
         method_option :thread_count, :aliases => "-t", :type => :numeric, :default => 5, :desc => "number of threads to use to upload files"
@@ -28,6 +28,20 @@ module AwsCli
         def put_rec
           create_s3_object
           @s3.upload_file_rec options
+        end
+
+        desc "put_big", "uploads a larger file (> 100 MB) using multipart uploads"
+        long_desc <<-DESC
+        Takes in a larger file, split the file into chunks and uploads the parts using amazon multipart uploads and the parts are aggregated at the amazons end.
+        DESC
+        method_option :bucket_name, :aliases => "-b", :required => true, :desc => "name of the bucket to upload the parts to"
+        method_option :file_path, :aliases => "-p", :required => true, :desc => "path of the file to upload"
+        method_option :tmp_dir, :aliases => "-t", :default => "/tmp", :desc => "path to a temperory location where file will be split into chunks"
+        method_option :acl, :aliases => "-a", :default => "private", :desc => "ACL to apply, to the object that is created after completing multipart upload, valid options in private | public-read | public-read-write | authenticated-read | bucket-owner-read | bucket-owner-full-control"
+        method_option :dest_path, :aliases => "-d", :desc => "optionally specify destination directory path to create"
+        def put_big
+          create_s3_object
+          @s3.multipart_upload options
         end
 
         desc "get", "get a file from a bucket"

@@ -1,6 +1,9 @@
 module Awscli
   module S3
     require 'thread'
+    require 'digest/md5'
+    require 'base64'
+    require 'fileutils'
 
     class Files
       def initialize connection, options = {}
@@ -79,8 +82,89 @@ module Awscli
             end
           end
         end
-        threads.each { |t| t.join }
+        # Wait for the threads to finish.
+        threads.each do |t|
+          begin
+            t.join
+          rescue RuntimeError => e
+            puts "Failure on thread #{t[:name]}: #{e.message}"
+          end
+        end
         puts "Uploaded #{total_files} (#{total_size / 1024} KB)"
+      end
+
+      def multipart_upload options
+        bucket_name, file_path, tmp_loc, acl = options[:bucket_name], options[:file_path], options[:tmp_dir], options[:acl]
+        dir = @@conn.directories.get(bucket_name)
+        abort "cannot find bucket: #{bucket_name}" unless dir
+        file = File.expand_path(file_path)
+        abort "Invalid file path: #{file_path}" unless File.exist?(file)
+        dest_path = options[:dest_path] if options[:dest_path]
+        if dest_path
+          if !dest_path.end_with?('/')
+            #add trailing slash to detination dir if is not passed
+            dest_path = "#{dest_path}/"
+          elsif
+            #remove leading slash from destination dir path if exists
+            dest_path = dest_path[1..-1]
+          end
+        end
+
+        remote_file = if dest_path
+                        "#{dest_path}#{File.basename(file_path)}"
+                      else
+                        "#{File.basename(file_path)}"
+                      end
+
+        #get the file and split it
+        tmp_dir = "#{tmp_loc}/#{File.basename(file_path)}"
+        FileUtils.mkdir_p(tmp_dir)
+        #split the file into chunks => use smaller chunk sizes to minimize memory
+        puts "Spliting the file into 10M chunks ..."
+        `split -a3 -b10m #{file} #{tmp_dir}/#{File.basename(file_path)}`
+        abort "Cannot perform split on the file" unless $?.to_i == 0
+
+        parts = Dir.glob("#{tmp_loc}/#{File.basename(file_path)}/*").sort
+
+        #initiate the mulitpart upload & store the returned upload_id
+        puts "Initializing multipart upload"
+        multi_part_up = @@conn.initiate_multipart_upload(
+          bucket_name,                  # name of the bucket to create object in
+          remote_file,                  # name of the object to create
+          { 'x-amz-acl' => acl }
+        )
+        upload_id = multi_part_up.body["UploadId"]
+        puts "Upload ID: #{upload_id}"
+
+        part_ids = []
+
+        parts.each_with_index do |part, position|
+          part_number = (position + 1).to_s
+          puts "Uploading #{part} ..."
+          File.open part do |part_file|
+            response = @@conn.upload_part(
+                bucket_name,
+                # file[1..-1],
+                remote_file,
+                upload_id,
+                part_number,
+                part_file
+              )
+            part_ids << response.headers['ETag']
+          end
+        end
+
+        puts "Completing multipart upload ..."
+        response = @@conn.complete_multipart_upload(
+          bucket_name,
+          # file[1..-1],
+          remote_file,
+          upload_id,
+          part_ids
+        )
+        puts "Cleaning tmp_dir ..."
+        FileUtils.rm_rf(tmp_dir)
+        puts "Successfully completed multipart upload"
       end
 
       def download_file dir_name, file_name, path
@@ -97,6 +181,7 @@ module Awscli
       end
 
       def delete_file dir_name, file_name
+        #TODO: Handle globs for deletions
         dir = @@conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         remote_file = dir.files.get(file_name)
