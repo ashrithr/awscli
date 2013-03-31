@@ -843,7 +843,7 @@ module Awscli
         dhcp.destroy
       end
 
-      def associate dhcp_ic, vpc_id
+      def associate dhcp_id, vpc_id
         @@conn.dhcp_options.attach(dhcp_id, vpc_id)
       end
     end # => Dhcp
