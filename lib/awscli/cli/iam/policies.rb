@@ -10,13 +10,14 @@ module AwsCli
         Use http://awspolicygen.s3.amazonaws.com/policygen.html to generate policy documents
         DESC
         method_option :user_name, :aliases => '-u', :banner => 'NAME', :desc => 'Name of the user the policy is for'
-        method_option :group_name, :aliases => '-g', :banner => 'NAME', :desc => 'Name of the group tha policy is for'
+        method_option :group_name, :aliases => '-g', :banner => 'NAME', :desc => 'Name of the group the policy is for'
+        method_option :role_name, :aliases => '-r', :banner => 'NAME', :desc => 'Name of the role the policy is for'
         method_option :policy_name, :aliases => '-p', :required => true, :banner => 'NAME', :desc => 'Name you want to assign the policy'
         method_option :policy_document, :aliases => '-f', :required => true, :banner => 'PATH', :desc => 'Path and name of the file containing the policy, Use http://awspolicygen.s3.amazonaws.com/policygen.html to generate policy documents'
         def add
           create_iam_object
-          if !options[:user_name] and !options[:group_name]
-            puts 'should pass either --user-name or --group-name'
+          if !options[:user_name] and !options[:group_name] and !options[:role_name]
+            puts 'should pass either --user-name or --group-name or --role-name'
             exit
           end
           @iam.add_policy_document options
@@ -40,9 +41,10 @@ module AwsCli
         desc 'list [OPTIONS]' , 'list policies for a user/group pass respective options'
         method_option :user_name, :aliases => '-u', :desc => 'name of the user to list policies for'
         method_option :group_name, :aliases => '-g', :desc => 'name of the gourp to list policies for'
+        method_option :role_name, :aliases => '-r', :desc => 'name of the role to list policies for'
         def list
-          if !options[:user_name] and !options[:group_name]
-            puts 'should pass either --user-name or --group-name'
+          if !options[:user_name] and !options[:group_name] and !options[:role_name]
+            puts 'should pass either --user-name or --group-name or --role-name'
             exit
           end
           create_iam_object
@@ -52,10 +54,11 @@ module AwsCli
         desc 'delete [OPTIONS]', 'delete policy associated with a user/group'
         method_option :user_name, :aliases => '-u', :desc => 'name of the user to delete policies for'
         method_option :group_name, :aliases => '-g', :desc => 'name of the gourp to delete policies for'
-        method_option :policy_name, :aliases => '-f', :required => true, :desc => 'name of the policy to delete'
+        method_option :role_name, :aliases => '-r', :banner => 'NAME', :desc => 'Name of the role to delete the policy for'
+        method_option :policy_name, :aliases => '-p', :required => true, :desc => 'name of the policy to delete'
         def delete
-          if !options[:user_name] and !options[:group_name]
-            puts 'should pass either --user-name or --group-name'
+          if !options[:user_name] and !options[:group_name] and !options[:role_name]
+            puts 'should pass either --user-name or --group-name or --role-name'
             exit
           end
           create_iam_object

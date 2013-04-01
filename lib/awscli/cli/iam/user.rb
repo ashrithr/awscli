@@ -53,6 +53,14 @@ module AwsCli
           @iam.list_user_access_keys options[:user_name]
         end
 
+        desc 'dak', 'delete access key for a user'
+        method_option :user_name, :aliases => '-u', :required => true, :desc => 'The username to delete the access key for'
+        method_option :access_key_id, :aliases => '-a', :required => true, :desc => 'Access key id to delete'
+        def dak
+          create_iam_object
+          @iam.delete_user_access_key options[:user_name], options[:access_key_id]
+        end
+
         desc 'update', 'updates the name and/or the path of the specified user'
         method_option :user_name, :aliases => '-u', :required => true, :desc => 'The user name to update the information for'
         method_option :new_user_name, :aliases => '-n', :banner => 'USERNAME', :desc => 'New name for the user. Include this parameter only if you are changing the users name.'
@@ -89,13 +97,18 @@ module AwsCli
           @iam.list_groups_for_user options[:user_name]
         end
 
-        desc 'passwd', 'add/change user password'
+        desc 'passwd [OPTIONS]', 'add/change user password'
         method_option :user_name, :aliases => '-u', :required => true, :desc => 'name of the user to change password for'
         method_option :password, :alases => '-p', :desc => 'password for the user'
         method_option :genereate, :aliases => '-g', :type => :boolean, :default => false, :desc => 'generates the password'
+        method_option :remove, :aliases => '-r', :type => :boolean, :default => false, :desc => 'remove password for the user'
         def passwd
           create_iam_object
-          @iam.assign_password options[:user_name], options[:password], options[:genereate]
+          if options[:remove]
+            @iam.remove_password options[:user_name]
+          else
+            @iam.assign_password options[:user_name], options[:password], options[:genereate]
+          end
         end
 
         private
