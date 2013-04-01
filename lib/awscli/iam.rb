@@ -88,62 +88,16 @@ module Awscli
         end
       end
 
-      def add_policy options
-      end
-
-      def add_policy_document username, policyname, document
-        #validate json document
-        doc_path = File.expand_path(document)
-        abort "Invalid file path: #{file_path}" unless File.exist?(doc_path)
-        json_string = File.read(doc_path)
-        abort "Invlaud JSON format found in the document: #{document}" unless valid_json?(json_string)
+      def list_groups_for_user username
         begin
-          @@conn.put_user_policy(username,
-            policyname,
-            JSON.parse(json_string)   #json parsed to hash
-          )
-          puts "Added policy: #{policyname} to user: #{username}"
-        rescue Fog::AWS::IAM::NotFound
-          puts "[Error]: #{$!}"
-        rescue Fog::AWS::IAM::Error
+          groups = @@conn.list_groups_for_user(username).body['GroupsForUser']
+          Formatador.display_table(groups)
+        rescue Fog::AWS::IAM::NotFound => e
           puts "[Error]: #{$!}"
         end
-
-        # => Example Documents
-
-        # iam.put_user_policy(username, 'UserKeyPolicy', {
-        #   'Statement' => [
-        #     'Effect' => 'Allow',
-        #     'Action' => 'iam:*AccessKey*',
-        #     'Resource' => arn
-        #   ]
-        # })
-
-        # iam.put_user_policy(username, 'UserS3Policy', {
-        #   'Statement' => [
-        #     {
-        #       'Effect' => 'Allow',
-        #       'Action' => ['s3:*'],
-        #       'Resource' => [
-        #         "arn:aws:s3:::#{bucket_name}",
-        #         "arn:aws:s3:::#{bucket_name}/*"
-        #       ]
-        #     }, {
-        #       'Effect' => 'Deny',
-        #       'Action' => ['s3:*'],
-        #       'NotResource' => [
-        #         "arn:aws:s3:::#{bucket_name}",
-        #         "arn:aws:s3:::#{bucket_name}/*"
-        #       ]
-        #     }
-        #   ]
-        # })
       end
 
-      def list_policies username
-        user = @@conn.users.get(username)
-        abort "[Error]: User not found #{username}" unless user
-        user.policies.table
+      def add_policy options
       end
 
       def assign_password username, password, autogenpwd = false
@@ -196,11 +150,119 @@ module Awscli
         end
       end
 
-      def create
+      def create groupname, path
+        begin
+          @@conn.create_group(groupname, path ||= '/')
+          puts "Created group: #{groupname}"
+        rescue Fog::AWS::IAM::ValidationError
+          puts "ValidationError: #{$!}"
+        rescue Fog::AWS::IAM::EntityAlreadyExists
+          puts "[Error] Group Exists: #{$!}"
+        end
       end
 
-      def delete
+      def delete groupname
+        begin
+          @@conn.delete_group(groupname)
+          puts "Create group: #{groupname}"
+        rescue Fog::AWS::IAM::NotFound
+          puts "[Error]: #{$!}"
+        end
       end
+    end
+
+    class Policies
+      def initialize connection, options = {}
+        @@conn = connection
+      end
+
+      def list options
+        if options[:user_name]
+          user = @@conn.users.get(options[:user_name])
+          abort "[Error]: User not found #{user_name}" unless user
+          user.policies.table
+        else
+          begin
+            grp_policies = @@conn.list_group_policies(options[:group_name]).body['PolicyNames'].map { |p| { 'Policy' => p } }
+            Formatador.display_table(grp_policies)
+          rescue Fog::AWS::IAM::NotFound
+            puts "[Error]: #{$!}"
+          end
+        end
+      end
+
+      def add_policy_document options
+        document = options[:policy_document]
+        policyname = options[:policy_name]
+        #validate json document
+        doc_path = File.expand_path(document)
+        abort "Invalid file path: #{file_path}" unless File.exist?(doc_path)
+        json_string = File.read(doc_path)
+        abort "Invlaud JSON format found in the document: #{document}" unless valid_json?(json_string)
+        begin
+          if options[:user_name]
+            @@conn.put_user_policy(options[:username],
+              policyname,
+              JSON.parse(json_string)   #json parsed to hash
+            )
+            puts "Added policy: #{policyname} to user: #{username}"
+          else
+            @@conn.put_group_policy(option[:group_name],
+              policyname,
+              JSON.parse(json_string)
+            )
+          end
+        rescue Fog::AWS::IAM::NotFound
+          puts "[Error]: #{$!}"
+        rescue Fog::AWS::IAM::Error
+          puts "[Error]: #{$!}"
+        end
+
+        # => Example Documents
+
+        # iam.put_user_policy(username, 'UserKeyPolicy', {
+        #   'Statement' => [
+        #     'Effect' => 'Allow',
+        #     'Action' => 'iam:*AccessKey*',
+        #     'Resource' => arn
+        #   ]
+        # })
+
+        # iam.put_user_policy(username, 'UserS3Policy', {
+        #   'Statement' => [
+        #     {
+        #       'Effect' => 'Allow',
+        #       'Action' => ['s3:*'],
+        #       'Resource' => [
+        #         "arn:aws:s3:::#{bucket_name}",
+        #         "arn:aws:s3:::#{bucket_name}/*"
+        #       ]
+        #     }, {
+        #       'Effect' => 'Deny',
+        #       'Action' => ['s3:*'],
+        #       'NotResource' => [
+        #         "arn:aws:s3:::#{bucket_name}",
+        #         "arn:aws:s3:::#{bucket_name}/*"
+        #       ]
+        #     }
+        #   ]
+        # })
+      end
+
+      def delete_policy options
+        begin
+          if options[:user_name]
+            @@conn.delete_user_policy(options[:user_name], options[:policy_name])
+          else
+            @@conn.delete_group_policy(options[:group_name], options[:policy_name])
+          end
+        rescue Fog::AWS::IAM::NotFound
+          puts "[Error]: #{$!}"
+        rescue Fog::AWS::IAM::Error
+          puts "[Error]: #{$!}"
+        end
+      end
+
     end
 
   end

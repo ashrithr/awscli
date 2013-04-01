@@ -14,6 +14,21 @@ module AwsCli
           @iam.list options[:path]
         end
 
+        desc 'create', 'create a new group'
+        method_option :group_name, :aliases => '-g', :required => true, :desc => 'name of the group to create (do not include path)'
+        method_option :path, :aliases => '-p', :default => '/', :desc => 'optional path to group, defaults to "/"'
+        def create
+          create_iam_object
+          @iam.create options[:group_name], options[:path]
+        end
+
+        desc 'delete', 'delete existing group'
+        method_option :group_name, :aliases => '-g', :required => true, :desc => 'name of the group to delete'
+        def delete
+          create_iam_object
+          @iam.delete options[:group_name]
+        end
+
         private
 
         def create_iam_object

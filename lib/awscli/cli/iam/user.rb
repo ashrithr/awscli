@@ -36,34 +36,6 @@ module AwsCli
           @iam.delete options[:user_name]
         end
 
-        desc 'addpolicydoc', 'Adds (or updates) a policy document associated with the specified user'
-        long_desc <<-DESC
-        Creates a policy based on the information you provide and attaches the policy to the specified user.  The command accepts a file containing the policy.
-        Use http://awspolicygen.s3.amazonaws.com/policygen.html to generate policy documents
-        DESC
-        method_option :user_name, :aliases => '-u', :required => true, :banner => 'NAME', :desc => 'Name of the user the policy is for'
-        method_option :policy_name, :aliases => '-p', :required => true, :banner => 'NAME', :desc => 'Name you want to assign the policy'
-        method_option :policy_document, :aliases => '-f', :required => true, :banner => 'PATH', :desc => 'Path and name of the file containing the policy, Use http://awspolicygen.s3.amazonaws.com/policygen.html to generate policy documents'
-        def addpolicydoc
-          create_iam_object
-          @iam.add_policy_document options[:user_name], options[:policy_name], options[:policy_document]
-        end
-
-        # desc 'addpolicy', 'Creates a policy based on the information you provide and attaches the policy to the specified user'
-        # long_desc <<-DESC
-        # Use this command if you need a simple policy with no conditions, and you don't want to write the policy yourself. If you need a policy with conditions, you must write the policy yourself and upload it with addpolicydoc.
-        # DESC
-        # method_option :user_name, :aliases => '-u', :required => true, :desc => 'Name of the user the policy is for'
-        # method_option :policy_name, :aliases => '-p', :required => true, :desc => 'Name you want to assign the policy'
-        # method_option :effect, :aliases => '-e', :required => true, :desc => 'The value for the policys Effect element. Specifies whether the policy results in an allow or a deny, Valid Values: Allow | Deny'
-        # method_option :action, :aliases => '-a', :type => :array, :required => true, :desc => 'The value for the policys Action element. Specifies the service and action you want to allow or deny permission to. For example: -a iam:ListAccessKeys. You can use wildcards, and you can specify more than one -a Action option in the request'
-        # method_option :resouce_name, :aliases => '-r', :type => :array, :required => true, :desc => 'The value for the policys Resource element. Specifies the Amazon Resource Name (ARN) for the resource (or resources) the policy applies to. You can use wildcards, and you can specify more than one -r AMAZON RESOURCE NAME option in the request'
-        # method_option :output, :aliases => '-o', :type => :boolean, :default => false, :desc => 'Causes the output to include the JSON policy document that IAM created for you'
-        # def addpolicy
-        #   create_iam_object
-        #   @iam.add_policy options
-        # end
-
         desc 'cak', 'create access key for user'
         long_desc <<-DESC
         Creates a new AWS Secret Access Key and corresponding AWS Access Key ID for the specified user. The default status for new keys is Active.
@@ -110,6 +82,13 @@ module AwsCli
           @iam.remove_user_from_group options[:user_name], options[:group_name]
         end
 
+        desc 'listgroups', 'List groups for user'
+        method_option :user_name, :aliases => '-u', :required => true, :desc => 'name of the user to list the groups for'
+        def listgroups
+          create_iam_object
+          @iam.list_groups_for_user options[:user_name]
+        end
+
         desc 'passwd', 'add/change user password'
         method_option :user_name, :aliases => '-u', :required => true, :desc => 'name of the user to change password for'
         method_option :password, :alases => '-p', :desc => 'password for the user'
@@ -117,13 +96,6 @@ module AwsCli
         def passwd
           create_iam_object
           @iam.assign_password options[:user_name], options[:password], options[:genereate]
-        end
-
-        desc 'listpolicies' , 'list policies for a user'
-        method_option :user_name, :aliases => '-u', :required => true, :desc => 'name of the user to list policies for'
-        def listpolicies
-          create_iam_object
-          @iam.list_policies options[:user_name]
         end
 
         private

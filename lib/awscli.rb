@@ -52,4 +52,5 @@ module AwsCli
   require 'awscli/cli/iam'
   require 'awscli/cli/iam/user'
   require 'awscli/cli/iam/group'
+  require 'awscli/cli/iam/policies'
 end
