@@ -11,14 +11,10 @@ spec = Gem::Specification.new do |s|
   s.description = "#{s.summary}, This gem is still in development."
 
   #Files
-  #ensure gem is built out of versioned files
   s.files = Dir['Rakefile', '{bin,lib,man,test,spec}/**/*', 'README*', 'LICENSE'] & `git ls-files -z`.split("\0")
   s.test_files = `git ls-files -- {test,features}/*`.split("\n")
   s.executables = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
   s.require_paths << 'lib'
-  # s.has_rdoc = true
-  # s.extra_rdoc_files = ['README.rdoc','awscli.rdoc']
-  # s.rdoc_options << '--title' << 'awscli' << '--main' << 'README.rdoc' << '-ri'
   s.bindir = 'bin'
 
   #Dependencies

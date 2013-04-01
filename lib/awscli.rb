@@ -48,4 +48,8 @@ module AwsCli
   require 'awscli/cli/as/groups'
   require 'awscli/cli/as/instances'
   require 'awscli/cli/as/policies'
+    #IAM
+  require 'awscli/cli/iam'
+  require 'awscli/cli/iam/user'
+  require 'awscli/cli/iam/group'
 end

@@ -55,7 +55,17 @@ module Awscli
 
     def request_as
       # => returns AWS Auto Scaling connection object
+      #remove region if passed from config
       Fog::AWS::AutoScaling.new(@@config)
+    end
+
+    def request_iam
+      # => returns AWS IAM object
+      if @@config['region']
+        #remove region
+        @@config.reject!{ |k| k == "region" }
+      end
+      Fog::AWS::IAM.new(@@config)
     end
 
   end
