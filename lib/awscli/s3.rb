@@ -10,12 +10,18 @@ module Awscli
         @conn = connection
       end
 
-      def list dir_name
+      def list dir_name, prefix=nil
         dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         puts "LastModified \t SIZE \t Object"
-        dir.files.each do |file|
-          puts "#{file.last_modified} \t #{file.content_length} \t #{file.key}"
+        if prefix
+          dir.files.all(:prefix => prefix).each do |file|
+            puts "#{file.last_modified} \t #{file.content_length} \t #{file.key}"
+          end
+        else
+          dir.files.each do |file|
+            puts "#{file.last_modified} \t #{file.content_length} \t #{file.key}"
+          end
         end
       end
 

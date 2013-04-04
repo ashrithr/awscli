@@ -6,9 +6,10 @@ module AwsCli
 
         desc "list", "list objects(files) in a bucket"
         method_option :bucket_name, :aliases => "-b", :required => true, :desc => "bucket name to print the contents from"
+        method_option :prefix, :aliases => '-p', :desc => 'Optionally specify a dir_name to narrow down results'
         def list
           create_s3_object
-          @s3.list options[:bucket_name]
+          @s3.list options[:bucket_name], options[:prefix]
         end
 
         desc "put", "put a file into a bucket"

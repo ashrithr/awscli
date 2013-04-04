@@ -7,5 +7,19 @@ module Awscli
   end
   module EMR
     VALID_JOB_FLOW_STATUS = %w(RUNNING WAITING SHUTTING_DOWN STARTING)
+    HADOOP_HIVE_COMPATIBILITY = {
+      '1.0.3' => '0.8.1.6',
+      '0.20.205' => '0.8.1.2',
+      '0.20' => '0.7.1',
+      '0.18' => '0.7.1'
+    }
+    HADOOP_AMI_MAPPING = {
+      '1.0.3' => '2.3',
+      '0.20.205' => '2.0',
+      '0.20' => '1.0',
+      '0.18' => '1.0'
+    }
+    HBASE_SUPPORTED_HADOOP_VERSIONS = %w(0.20.205 1.0.3)
+    HBASE_INVALID_INSTANCES = %w(m1.small c1.medium)
   end
 end
