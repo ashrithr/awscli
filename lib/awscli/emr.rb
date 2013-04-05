@@ -58,28 +58,11 @@ module Awscli
               ]
           }
         end
-        #p boot_strap_actions
 
         # => STEPS
-        #parse custom jar => jar_path(s3)*,main_class*,name_of_step,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1,agr2,arg3
-        options[:custom_jar_steps] && options[:custom_jar_steps].each do |step|
-          puts step
-          jar, main_class, name, action_on_failure, *args = step.split(',')
-          if jar.empty? or main_class.empty? or args.empty?
-            abort 'jar, main_class and args are required'
-          end
-          abort 'Invalid action_on_failure value' unless %w(TERMINATE_JOB_FLOW CANCEL_AND_WAIT CONTINUE).include?(action_on_failure)
-          steps << {
-              'ActionOnFailure' => action_on_failure || 'TERMINATE_JOB_FLOW',
-              'HadoopJarStep' => [
-                  {
-                      'Args' => args,
-                      'Jar' => jar,
-                      'MainClass' => main_class,
-                  }
-              ],
-              'Name' => name || "awscli-emr-#{custom-jar}-step"
-          }
+        steps = Array.new
+        if options[:custom_jar_steps]
+          steps << parse_custom_jar(options[:custom_jar_steps])
         end
         if options[:hive_interactive]
           instances['KeepJobFlowAliveWhenNoSteps'] = true
@@ -111,19 +94,15 @@ module Awscli
               'ActionOnFailure' => 'TERMINATE_JOB_FLOW',
               'Name' => 'awscli-emr-hive-step',
               'HadoopJarStep' => {
-                  "Jar" => "s3://us-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+                  "Jar" => 's3://us-west-1.elasticmapreduce/libs/script-runner/script-runner.jar',
                   "Args" => [
-                      "s3://us-west-1.elasticmapreduce/libs/hive/hive-script",
-                      "--base-path",
-                      "s3://us-west-1.elasticmapreduce/libs/hive/",
-                      "--run-hive-script",
-                      "--args",
-                      "-f",
-                      #"s3n://elasticmapreduce/samples/hive-ads/libs/model-build.q",
-                      path,
-                  #"-d LIBS=s3n://elasticmapreduce/samples/hive-ads/libs"
-                  #"-d INPUT=s3n://mybucket/hive/input"
-                  #"-d OUTPUT=s3n://mybucket/hive/output"
+                      's3://us-west-1.elasticmapreduce/libs/hive/hive-script',
+                      '--base-path',
+                      's3://us-west-1.elasticmapreduce/libs/hive/',
+                      '--run-hive-script',
+                      '--args',
+                      '-f',
+                      path
                   ]
               }
           }
@@ -140,23 +119,21 @@ module Awscli
               'ActionOnFailure' => 'TERMINATE_JOB_FLOW',
               'Name' => 'awscli-emr-pig-step',
               'HadoopJarStep' => {
-                  "Jar" => "s3://us-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+                  "Jar" => 's3://us-west-1.elasticmapreduce/libs/script-runner/script-runner.jar',
                   "Args" => [
-                      "s3://us-west-1.elasticmapreduce/libs/pig/pig-script",
-                      "--base-path",
-                      "s3://us-west-1.elasticmapreduce/libs/pig/",
-                      "--run-pig-script",
-                      "--ami-version 2.0",
-                      "--args",
-                      "-f", path
-                  #"s3n://elasticmapreduce/samples/pig-apache/do-reports2.pig",
-                  #"-p", "INPUT=s3n://elasticmapreduce/samples/pig-apache/input",
-                  #"-p", "OUTPUT=s3n://myawsbucket/pig-apache/output"
+                      's3://us-west-1.elasticmapreduce/libs/pig/pig-script',
+                      '--base-path',
+                      's3://us-west-1.elasticmapreduce/libs/pig/',
+                      '--run-pig-script',
+                      '--ami-version 2.0',
+                      '--args',
+                      '-f',
+                      path
                   ]
               }
           }
-          pig_step['HadoopJarStep']['Args'] << "-p" << "INPUT=#{input_path}" unless input_path.empty?
-          pig_step['HadoopJarStep']['Args'] << "-p" << "OUTPUT=#{output_path}" unless output_path.empty?
+          pig_step['HadoopJarStep']['Args'] << '-p' << "INPUT=#{input_path}" unless input_path.empty?
+          pig_step['HadoopJarStep']['Args'] << '-p' << "OUTPUT=#{output_path}" unless output_path.empty?
           pig_step['HadoopJarStep']['Args'] += args unless args.empty?
           steps << pig_step
         end
@@ -171,7 +148,7 @@ module Awscli
               'ActionOnFailure' => 'TERMINATE_JOB_FLOW',
               'Name' => 'awscli-emr-streaming-step',
               'HadoopJarStep' => {
-                  "Jar" => "/home/hadoop/contrib/streaming/hadoop-streaming.jar",
+                  "Jar" => '/home/hadoop/contrib/streaming/hadoop-streaming.jar',
                   "Args" => [
                       '-input', input,
                       '-output', output,
@@ -188,10 +165,8 @@ module Awscli
 
         # => INSTANCE GROUPS
         instance_groups = parse_instance_groups(options[:instance_groups])
-        #p instance_groups
 
         # => INSTANCES
-        #build instances array from instances
         instances = Hash.new
         instances['HadoopVersion'] = options[:hadoop_version]
         if options[:hive_interactive] or options[:pig_interactive]  #then job flow should not be terminated
@@ -205,8 +180,6 @@ module Awscli
         instances['SlaveInstanceType'] = options[:slave_instance_type] if options[:slave_instance_type]
         instances['TerminationProtected'] = options[:termination_protection] if options[:termination_protection]
         instances['InstanceGroups'] = instance_groups if options[:instance_groups]
-        steps = Array.new
-        #p steps
 
         # => HBASE
         if options[:hbase_install]
@@ -284,18 +257,17 @@ module Awscli
         end
         # => Build final request
         job_flow = Hash.new
-        #job_flow['Name'] = options[:name]
         job_flow['AmiVersion'] = Awscli::EMR::HADOOP_AMI_MAPPING[options[:hadoop_version]]
         job_flow['LogUri'] = options[:log_uri] if options[:log_uri]
         job_flow['BootstrapActions'] = boot_strap_actions if options[:bootstrap_actions] or options[:hbase_install]
         job_flow['Instances'] = instances
         job_flow['Steps'] = steps
         pp job_flow
-        #if options[:alive] or options[:hive_interactive] or options[:pig_interactive]
-        #  @conn.run_job_flow("#{options[:name]} (requires manual termination)", job_flow)
-        #else
-        #  @conn.run_job_flow(options[:name], job_flow)
-        #end
+        if options[:alive] or options[:hive_interactive] or options[:pig_interactive] or options[:hbase_install]
+          @conn.run_job_flow("#{options[:name]} (requires manual termination)", job_flow)
+        else
+          @conn.run_job_flow(options[:name], job_flow)
+        end
         puts "Create JobFlow '#{options[:name]}' Successfully!"
       end
 
@@ -330,35 +302,8 @@ module Awscli
 
       def add_steps(job_flow_id, job_steps)
         validate_job_ids job_flow_id
-        #parse jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)
-        steps = []
-        job_steps.each do |step|
-          p step.split(',')
-          jar, name, main_class, action_on_failure, extra_args, *job_conf = step.split(',')
-          if jar.empty? or name.empty?
-            abort "jar and name are required for a step"
-          end
-          step_to_run = {
-              'ActionOnFailure' => action_on_failure.empty? ? 'TERMINATE_JOB_FLOW' : action_on_failure,
-              'Name' => name,
-              'HadoopJarStep' => {
-                  'Jar' => jar,
-                  'Args' => extra_args.empty? ? [] : extra_args.split('='),
-                  'Properties' => []
-              }
-          }
-          #steps['HadoopJarStep']['Args'] + extra_args.split('=') unless extra_args
-          step_to_run['HadoopJarStep']['MainClass'] = main_class if !main_class.empty?
-          if job_conf
-            job_conf.each do |kv_pair|
-              properties = {}
-              properties['Key'], properties['Value'] = kv_pair.split('=')
-              step_to_run['HadoopJarStep']['Properties'] << properties
-            end
-          end
-          steps << step_to_run
-        end
-        @conn.add_job_flow_steps(job_flow_id, steps)
+        @conn.add_job_flow_steps(job_flow_id, 'Steps' => parse_custom_jar(job_steps))
+        puts "Added step to job flow id: #{job_flow_id}"
       end
 
       def modify_instance_group(options)
@@ -412,7 +357,7 @@ module Awscli
       end
 
       def is_valid_instance_type?(instance_type)
-        return ! Awscli::EMR::HBASE_INVALID_INSTANCES.member?(instance_type)
+        ! Awscli::EMR::HBASE_INVALID_INSTANCES.member?(instance_type)
       end
 
       def parse_instance_groups(groups)
@@ -445,6 +390,38 @@ module Awscli
           end
         end
         instance_groups
+      end
+
+      def parse_custom_jar(steps)
+        #parse jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)
+        parsed_steps = []
+        steps.each do |step|
+          abort "invalid step pattern, expecting 'jar_path(s3)*,name_of_step*,main_class,action_on_failure,arg1=agr2=arg3,prop_k1=prop_v1,prop_k2=prop_v2)'" unless step =~ /(.*),(.*),(.*),(.*),(.*),(.*),(.*)/
+          jar, name, main_class, action_on_failure, extra_args, *job_conf = step.split(',')
+          if jar.empty? or name.empty?
+            abort 'jar and name are required for a step'
+          end
+          step_to_run = {
+              'ActionOnFailure' => action_on_failure.empty? ? 'TERMINATE_JOB_FLOW' : action_on_failure,
+              'Name' => name,
+              'HadoopJarStep' => {
+                  'Jar' => jar,
+                  'Args' => extra_args.empty? ? [] : extra_args.split('='),
+                  'Properties' => []
+              }
+          }
+          #steps['HadoopJarStep']['Args'] + extra_args.split('=') unless extra_args
+          step_to_run['HadoopJarStep']['MainClass'] = main_class unless main_class.empty?
+          unless job_conf.empty?
+            job_conf.each do |kv_pair|
+              properties = {}
+              properties['Key'], properties['Value'] = kv_pair.split('=')
+              step_to_run['HadoopJarStep']['Properties'] << properties
+            end
+          end
+          parsed_steps << step_to_run
+        end
+        parsed_steps
       end
     end
   end
