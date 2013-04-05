@@ -78,7 +78,6 @@ module AwsCli
 
       desc 'create [OPTIONS]', 'creates and starts running a new job flow'
       #TODO: update Long Desc
-      #TODO: add hbase install & backup
       long_desc <<-DESC
       DESC
       method_option :name, :aliases => '-n', :desc => 'The name of the job flow'
@@ -94,7 +93,7 @@ module AwsCli
       method_option :slave_instance_type, :desc => 'The EC2 instance type of the slave nodes'
       method_option :termination_protection, :type => :boolean, :default => false, :desc => 'Specifies whether to lock the job flow to prevent the Amazon EC2 instances from being terminated by API call'
       method_option :bootstrap_actions, :aliases => '-b', :type => :array, :desc => 'Add bootstrap action script. Format => "name,bootstrap_action_path,bootstrap_action_args"'
-      method_option :instance_groups, :aliases => '-g', :type => :array, :desc => 'Add instance groups. Format => "instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price" see help for usage'
+      method_option :instance_groups, :aliases => '-g', :type => :array, :desc => 'Add instance groups. Format => "instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price" see usage command for examples'
       method_option :custom_jar_steps, :aliases => '-s', :type => :array, :desc => 'Add a step that runs a custom jar. Format=> "jar_path(s3)*,main_class*,name_of_step,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1,agr2,arg3"'
       method_option :hive_interactive, :type => :boolean, :default => false, :desc => 'Add a step that sets up the job flow for an interactive (via SSH) hive session'
       method_option :pig_interactive, :type => :boolean, :default => false, :desc => 'Add a step that sets up the job flow for an interactive (via SSH) pig session'
@@ -114,6 +113,27 @@ module AwsCli
         @emr.create_job_flow options
       end
 
+      desc 'add_ig', 'adds an instance group(s) to a running cluster'
+      method_option :job_flow_id, :aliases => '-j', :desc => 'Job flow in which to add the instance groups'
+      method_option :instance_groups, :type => :array, :aliases => '-g', :desc => 'Add instance groups. Format => "instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price"'
+      def add_ig
+        unless options[:job_flow_id] and options[:instance_groups]
+          abort "--job-flow-id and --instance-groups are required"
+        end
+        create_emr_object
+        @emr.add_instance_groups options[:job_flow_id], options[:instance_groups]
+      end
+
+      desc 'add_steps', 'adds new steps to a running job flow'
+      method_option :job_flow_id, :aliases => '-j', :desc => 'A string that uniquely identifies the job flow'
+      method_option :steps, :aliases => '-s', :type => :array, :desc => 'Add list of steps to be executed by job flow. Format=> jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)'
+      def add_steps
+        unless options[:job_flow_id] and options[:steps]
+          abort "--job-flow-id and --steps are required"
+        end
+        create_emr_object
+        @emr.add_steps options[:job_flow_id], options[:steps]
+      end
       private
 
       def create_emr_object

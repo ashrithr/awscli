@@ -163,6 +163,7 @@ module Awscli
         options[:streaming_steps] && options[:streaming_steps].each do |step|
           #parse input*:output*:mapper*:reducer*:extra_arg1:extra_arg2
           input, output, mapper, reducer, *args = step.split(',')
+          #input, output, mapper, reducer, args, *job_conf = step.split(',')
           if input.empty? or output.empty? or mapper.empty? or reducer.empty?
             abort 'input, output, mapper and reducer are required'
           end
@@ -180,38 +181,13 @@ module Awscli
               }
           }
           streaming_step['HadoopJarStep']['Args'] + args unless args.empty?
+          #TODO: Add -jobconf params as k=v,k=v,k=v
+          #streaming_step['HadoopJarStep']['Args'] << '-job_conf' + job_conf if job_conf.empty?
           steps << streaming_step
         end
 
         # => INSTANCE GROUPS
-        #parse instance_groups => instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price
-        instance_groups = Array.new
-        options[:instance_groups] && options[:instance_groups].each do |ig|
-          instance_count, instance_role, instance_size, name, bid_price = ig.split(',')
-          if instance_count.empty? or instance_role.empty? or instance_size.empty?
-            abort 'instance_count, instance_role and instance_size are required'
-          end
-          abort "Invalid instance role: #{instance_role}" unless %w(MASTER CORE TASK).include?(instance_role.upcase)
-          abort "Invalid instance type: #{instance_size}" unless Awscli::Instances::INSTANCE_SIZES.include?(instance_size)
-          if bid_price
-            instance_groups << {
-                'BidPrice' => bid_price,
-                'InstanceCount' => instance_count.to_i,
-                'InstanceRole' => instance_role,
-                'InstanceType' => instance_size,
-                'MarketType' => 'SPOT',
-                'Name' => name || "awscli-emr-#{instance_role}-group",
-            }
-          else
-            instance_groups << {
-                'InstanceCount' => instance_count.to_i,
-                'InstanceRole' => instance_role,
-                'InstanceType' => instance_size,
-                'MarketType' => 'ON_DEMAND',
-                'Name' => name || "awscli-emr-#{instance_role}-group",
-            }
-          end
-        end
+        instance_groups = parse_instance_groups(options[:instance_groups])
         #p instance_groups
 
         # => INSTANCES
@@ -352,6 +328,39 @@ module Awscli
         puts "Added instance group to job flow(with id): #{options[:job_flow_id]}"
       end
 
+      def add_steps(job_flow_id, job_steps)
+        validate_job_ids job_flow_id
+        #parse jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)
+        steps = []
+        job_steps.each do |step|
+          p step.split(',')
+          jar, name, main_class, action_on_failure, extra_args, *job_conf = step.split(',')
+          if jar.empty? or name.empty?
+            abort "jar and name are required for a step"
+          end
+          step_to_run = {
+              'ActionOnFailure' => action_on_failure.empty? ? 'TERMINATE_JOB_FLOW' : action_on_failure,
+              'Name' => name,
+              'HadoopJarStep' => {
+                  'Jar' => jar,
+                  'Args' => extra_args.empty? ? [] : extra_args.split('='),
+                  'Properties' => []
+              }
+          }
+          #steps['HadoopJarStep']['Args'] + extra_args.split('=') unless extra_args
+          step_to_run['HadoopJarStep']['MainClass'] = main_class if !main_class.empty?
+          if job_conf
+            job_conf.each do |kv_pair|
+              properties = {}
+              properties['Key'], properties['Value'] = kv_pair.split('=')
+              step_to_run['HadoopJarStep']['Properties'] << properties
+            end
+          end
+          steps << step_to_run
+        end
+        @conn.add_job_flow_steps(job_flow_id, steps)
+      end
+
       def modify_instance_group(options)
         abort "Invalid instance group id: #{options[:instance_group_id]}" unless validate_instance_group_id?(options[:instance_group_id])
         @conn.modify_instance_groups(
@@ -379,6 +388,12 @@ module Awscli
           puts("Termination protection flag removed from job_flows: #{job_flow_ids.join(',')}")
       end
 
+      def add_instance_groups(job_flow_id, groups)
+        validate_job_ids job_flow_id
+        instance_groups = parse_instance_groups(groups)
+        @conn.add_instance_groups(job_flow_id, 'InstanceGroups' => instance_groups)
+      end
+
       def delete job_ids
         validate_job_ids job_ids
         @conn.terminate_job_flows('JobFlowIds' => job_ids)
@@ -398,6 +413,38 @@ module Awscli
 
       def is_valid_instance_type?(instance_type)
         return ! Awscli::EMR::HBASE_INVALID_INSTANCES.member?(instance_type)
+      end
+
+      def parse_instance_groups(groups)
+        #parse instance_groups => instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price
+        instance_groups = []
+        groups.each do |group|
+          instance_count, instance_role, instance_size, name, bid_price = ig.split(',')
+          if instance_count.empty? or instance_role.empty? or instance_size.empty?
+            abort 'instance_count, instance_role and instance_size are required'
+          end
+          abort "Invalid instance role: #{instance_role}" unless %w(MASTER CORE TASK).include?(instance_role.upcase)
+          abort "Invalid instance type: #{instance_size}" unless Awscli::Instances::INSTANCE_SIZES.include?(instance_size)
+          if bid_price
+            instance_groups << {
+                'BidPrice' => bid_price,
+                'InstanceCount' => instance_count.to_i,
+                'InstanceRole' => instance_role,
+                'InstanceType' => instance_size,
+                'MarketType' => 'SPOT',
+                'Name' => name || "awscli-emr-#{instance_role}-group",
+            }
+          else
+            instance_groups << {
+                'InstanceCount' => instance_count.to_i,
+                'InstanceRole' => instance_role,
+                'InstanceType' => instance_size,
+                'MarketType' => 'ON_DEMAND',
+                'Name' => name || "awscli-emr-#{instance_role}-group",
+            }
+          end
+        end
+        instance_groups
       end
     end
   end
