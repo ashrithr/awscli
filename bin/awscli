@@ -1,23 +1,23 @@
 #!/usr/bin/env ruby
 
-#Trap interupt to quit cleanly
-Signal.trap("INT") { exit 1 }
+#Trap interrupt to quit cleanly
+Signal.trap('INT') { exit 1 }
 
 #load the path if not loaded previously
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib') unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/../lib')
 
 begin
-  require "awscli"
+  require 'awscli'
 rescue LoadError
-  require "rubygems"
-  require "awscli"
+  require 'rubygems'
+  require 'awscli'
 end
 
 #Start the cli
 begin
   AwsCli::Cli.start
 rescue Interrupt
-  puts "Caught Interrupt, Exiting..."
+  puts 'Caught Interrupt, Exiting...'
 rescue Excon::Errors::SocketError
   puts "Error: Establishing Connection to AWS, #{$!}"
 rescue Fog::Compute::AWS::Error
@@ -25,7 +25,7 @@ rescue Fog::Compute::AWS::Error
 rescue Fog::Compute::AWS::NotFound
   puts "Cannot find Resource: #{$!}"
 rescue Excon::Errors::InternalServerError
-  puts "Something went wrong, please try again!."
+  puts 'Something went wrong, please try again!.'
   puts "Error: #{$!}"
 rescue ArgumentError
   puts "Cannot recognize the argument passed, #{$!}"

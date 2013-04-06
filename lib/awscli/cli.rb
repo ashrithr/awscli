@@ -8,7 +8,7 @@ module AwsCli
     #              :desc => 'Configuration file, accepts ENV $AWSCLI_CONFIG_FILE',
     #              :default => ENV['AWSCLI_CONFIG_FILE'] || "~/.awscli.yml"
 
-    desc "help", "help banner"
+    desc 'help', 'help banner'
     def help_banner
       puts <<-HELP.gsub(/^ {8}/, '')
         Amazon Web Services Command Line Interface, Version - #{Awscli::VERSION}

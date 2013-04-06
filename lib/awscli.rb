@@ -6,7 +6,7 @@ begin
   require 'highline/import'
   require 'yaml'
 rescue LoadError
-  puts "Failed to load gems: fog, highline, thor"
+  puts 'Failed to load gems: fog, highline, thor'
   exit 1
 end
 
@@ -55,4 +55,6 @@ module AwsCli
   require 'awscli/cli/iam/policies'
   require 'awscli/cli/iam/roles'
   require 'awscli/cli/iam/profiles'
+    #EMR
+  require 'awscli/cli/emr'
 end

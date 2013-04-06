@@ -7,37 +7,46 @@ module Awscli
 
     class Files
       def initialize connection, options = {}
-        @@conn = connection
+        @conn = connection
       end
 
-      def list dir_name
-        dir = @@conn.directories.get(dir_name)
+      def list(dir_name, prefix=nil)
+        dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         puts "LastModified \t SIZE \t Object"
-        dir.files.each do |file|
-          puts "#{file.last_modified} \t #{file.content_length} \t #{file.key}"
+        if prefix
+          dir.files.all(:prefix => prefix).each do |file|
+            puts "#{file.last_modified} \t #{file.content_length} \t #{file.key}"
+          end
+        else
+          dir.files.each do |file|
+            puts "#{file.last_modified} \t #{file.content_length} \t #{file.key}"
+          end
         end
       end
 
-      def upload_file dir_name, file_path
-        dir = @@conn.directories.get(dir_name)
+      def upload_file(dir_name, file_path, dest_path=nil)
+        dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         file = File.expand_path(file_path)
         abort "Invalid file path: #{file_path}" unless File.exist?(file)
+        if dest_path && !dest_path.end_with?('/')
+          dest_path = "#{dest_path}/"
+        end
         file_name = File.basename(file)
         dir.files.create(
-            :key => file_name,
+            :key => "#{dest_path}#{file_name}",
             :body => File.open(file),
             :public => true
           )
         puts "Uploaded file: #{file_name} to bucket: #{dir_name}"
       end
 
-      def upload_file_rec options
+      def upload_file_rec(options)
         dir_name, dir_path, threads_count, is_public = options[:bucket_name], options[:dir_path], options[:thread_count], options[:public]
         dest_path = options[:dest_path] if options[:dest_path]
         #check if bucket exists
-        bucket = @@conn.directories.get(dir_name)
+        bucket = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless bucket
         #check if passed path is a dir
         dir = File.expand_path(dir_path)
@@ -93,9 +102,9 @@ module Awscli
         puts "Uploaded #{total_files} (#{total_size / 1024} KB)"
       end
 
-      def multipart_upload options
+      def multipart_upload(options)
         bucket_name, file_path, tmp_loc, acl = options[:bucket_name], options[:file_path], options[:tmp_dir], options[:acl]
-        dir = @@conn.directories.get(bucket_name)
+        dir = @conn.directories.get(bucket_name)
         abort "cannot find bucket: #{bucket_name}" unless dir
         file = File.expand_path(file_path)
         abort "Invalid file path: #{file_path}" unless File.exist?(file)
@@ -128,7 +137,7 @@ module Awscli
 
         #initiate the mulitpart upload & store the returned upload_id
         puts "Initializing multipart upload"
-        multi_part_up = @@conn.initiate_multipart_upload(
+        multi_part_up = @conn.initiate_multipart_upload(
           bucket_name,                  # name of the bucket to create object in
           remote_file,                  # name of the object to create
           { 'x-amz-acl' => acl }
@@ -142,7 +151,7 @@ module Awscli
           part_number = (position + 1).to_s
           puts "Uploading #{part} ..."
           File.open part do |part_file|
-            response = @@conn.upload_part(
+            response = @conn.upload_part(
                 bucket_name,
                 # file[1..-1],
                 remote_file,
@@ -155,7 +164,7 @@ module Awscli
         end
 
         puts "Completing multipart upload ..."
-        response = @@conn.complete_multipart_upload(
+        response = @conn.complete_multipart_upload(
           bucket_name,
           # file[1..-1],
           remote_file,
@@ -167,8 +176,8 @@ module Awscli
         puts "Successfully completed multipart upload"
       end
 
-      def download_file dir_name, file_name, path
-        dir = @@conn.directories.get(dir_name)
+      def download_file(dir_name, file_name, path)
+        dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         local_path = File.expand_path(path)
         abort "Invalid file path: #{path}" unless File.exist?(local_path)
@@ -180,9 +189,9 @@ module Awscli
         puts "Downloaded file: #{remote_file.key} to path: #{local_path}"
       end
 
-      def delete_file dir_name, file_name
+      def delete_file(dir_name, file_name)
         #TODO: Handle globs for deletions
-        dir = @@conn.directories.get(dir_name)
+        dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         remote_file = dir.files.get(file_name)
         abort "cannot find file: #{file_name}" unless remote_file
@@ -190,35 +199,38 @@ module Awscli
         puts "Deleted file: #{file_name}"
       end
 
-      def copy_file source_dir, source_file, dest_dir, dest_file
-        @@conn.directories.get(source_dir).files.get(source_file).copy(dest_dir, dest_file)
+      def copy_file(source_dir, source_file, dest_dir, dest_file)
+        @conn.directories.get(source_dir).files.get(source_file).copy(dest_dir, dest_file)
       end
 
-      def get_public_url dir_name, file_name
-        url = @@conn.directories.get(dir_name).files.get(file_name).public_url
+      def get_public_url(dir_name, file_name)
+        url = @conn.directories.get(dir_name).files.get(file_name).public_url
         puts "public url for the file: #{file_name} is #{url}"
       end
     end
 
     class Directories
-      def initialize connection, options = {}
-        @@conn = connection
+      def initialize(connection, options = {})
+        @conn = connection
       end
 
       def list
-        @@conn.directories.table
+        @conn.directories.table
       end
 
-      def create bucket_name, is_public
-        dir = @@conn.directories.create(
+      def create(bucket_name, is_public)
+        dir = @conn.directories.create(
           :key => bucket_name,
           :public => is_public
         )
+      rescue Excon::Errors::Conflict
+        puts "Bucket already exists, bucket name should be unique globally"
+      else
         puts "Created bucket: #{dir.key}"
       end
 
       def delete dir_name
-        dir = @@conn.directories.get(dir_name)
+        dir = @conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
         #check if the dir is empty or not
         abort "Bucket is not empty, use rec_delete to force delete bucket" if dir.files.length != 0
@@ -226,7 +238,7 @@ module Awscli
         puts "Deleted Bucket: #{dir_name}"
       end
 
-      def delete_rec dir_name
+      def delete_rec(dir_name)
         #Forked from https://gist.github.com/bdunagan/1383301
         data_queue = Queue.new
         semaphore = Mutex.new
@@ -234,7 +246,7 @@ module Awscli
         total_listed = 0
         total_deleted = 0
         thread_count = 20 #num_of_threads to perform deletion
-        dir = @@conn.directories.get(dir_name)
+        dir = @conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
         if dir.files.length != 0
           if agree("Are you sure want to delete all the objects in the bucket ?  ", true)
@@ -288,25 +300,25 @@ module Awscli
         end
       end
 
-      def get_acl dir_name
-        dir = @@conn.directories.get(dir_name)
+      def get_acl(dir_name)
+        dir = @conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
         puts dir.acl
       end
 
-      def set_acl dir_name, acl
-        dir = @@conn.directories.get(dir_name)
+      def set_acl(dir_name, acl)
+        dir = @conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
         dir.acl = acl
         puts "Acl has been changed to #{acl}"
       end
 
-      def get_logging_status dir_name
-        puts @@conn.get_bucket_logging(dir_name).body['BucketLoggingStatus']
+      def get_logging_status(dir_name)
+        puts @conn.get_bucket_logging(dir_name).body['BucketLoggingStatus']
       end
 
-      def set_logging_status dir_name, logging_status = {}
-        @@conn.put_bucket_logging dir_name, logging_status
+      def set_logging_status(dir_name, logging_status = {})
+        @conn.put_bucket_logging dir_name, logging_status
       end
     end
 

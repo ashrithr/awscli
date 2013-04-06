@@ -1,0 +1,49 @@
+#
+# => AWSCLI EMR CREATE Usage Examples
+#
+
+# => Create Hive cluster
+awscli emr create --name=awsclijobflow --log-uri=s3n://yourbucket/emrlogs -k ruby-sample --instance-count=3 \
+--master-instance-type=m1.small --slave-instance-type=m1.small --alive --hive-interactive
+
+# => Create Custom Jar Job
+awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --instance-ec2-key-name=keyname.pem\
+--instance-count=3 --alive --master-instance-type=m1.small --slave-instance-type=m1.small \
+--custom-jar-steps="s3n://yourbucket/worcount/wc.jar",wc,wordcounttest,TERMINATE_JOB_FLOW,"-input","s3n://yourbucket/wordcount/input","-output","s3n://yourbucket/wordcount/output"
+
+# => Create Pig Interactive
+awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --instance-ec2-key-name=keyname.pem\
+--instance-count=3 --alive --master-instance-type=m1.small --slave-instance-type=m1.small --pig-interactive
+
+# => Hive Job
+awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --instance-ec2-key-name=keyname.pem\
+--instance-count=3 --alive --master-instance-type=m1.small --slave-instance-type=m1.small \
+--hive-steps=s3n://yourbucket/hive/script.q,s3n://yourbucket/hive/input,s3n://yourbucket/hive/output,-d,'LIBS=s3n://elasticmapreduce/samples/hive-ads/libs'
+
+# => Pig Job
+awscli emr create --name=awsclihivesteps --log-uri=s3://yourbucket/emrlogs --instance-ec2-key-name=keyname.prem\
+--instance-count=2 --alive --master-instance-type=m1.small --slave-instance-type=m1.small \
+--pig-steps="s3n://elasticmapreduce/samples/pig-apache/do-reports2.pig","s3n://elasticmapreduce/samples/pig-apache/input","s3n://ashrithtst/pigsteps/output2"
+
+# => Adding Instance Groups
+awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --instance-ec2-key-name=keyname.pem\
+--instance-groups=1,MASTER,m1.small 2,CORE,m1.small 4,TASK,m1.small
+
+# => Create HBase cluster
+awscli emr create --name="hbase install" --log-uri="s3n://yourbucket/emrlogs" --instance-ec2-key-name="keyname.pem" \
+--hadoop-version=0.20.205 --instance-count=3 --hbase-install --master-instance-type=m1.large --slave-instance-type=m1.large
+
+# => Create HBase cluster from previous backup
+awscli emr create --name="hbase restored" --log-uri="s3n://yourbucket/emrlogs" --instance-ec2-key-name="keyname.pem" \
+--hadoop-version=0.20.205 --instance-count=3 --master-instance-type=m1.large --slave-instance-type=m1.large --hbase-install \
+--hbase-backup-restore="s3://yourbucket/backups/<jobid>","20120809T031314Z"
+
+# => Create HBase cluster with incremental backups
+awscli emr create --name="hbase install" --log-uri="s3n://yourbucket/emrlogs" --instance-ec2-key-name="keyname.pem" \
+--hadoop-version=0.20.205 --instance-count=3 --hbase-install --master-instance-type=m1.large --slave-instance-type=m1.large \
+--hbase-backup-schedule=7,days,"s3://yourbucket/backups/hbase","2012-06-15T20:00Z"
+
+# => Create HBase cluster with incremental and consistent backups
+awscli emr create --name="hbase install" --log-uri="s3n://yourbucket/emrlogs" --instance-ec2-key-name="keyname.pem" \
+--hadoop-version=0.20.205 --instance-count=3 --hbase-install --master-instance-type=m1.large --slave-instance-type=m1.large \
+--hbase-backup-schedule=7,days,"s3://yourbucket/backups/hbase","2012-06-15T20:00Z" --hbase-consistent-backup

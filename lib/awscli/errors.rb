@@ -58,7 +58,7 @@ module Awscli
     end
 
     def self.invalid_credentials
-      message = "Invalid Credentials, Please check your AWS access and secret key id."
+      message = 'Invalid Credentials, Please check your AWS access and secret key id.'
       raise(Awscli::Errors::LoadError.new(message))
     end
 
