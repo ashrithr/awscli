@@ -14,8 +14,6 @@ module AwsCli
       end
 
       desc 'list [OPTIONS]', 'returns a yaml dump of job flows that match all of the supplied parameters'
-      #method_option :created_after, :desc => 'Return only job flows created after this date and time'
-      #method_option :created_before, :desc => 'Return only job flows created before this date and time'
       method_option :job_flow_ids, :aliases => '-j', :type => :array, :desc => 'Return only job flows whose job flow ID is contained in this list'
       method_option :job_flow_status, :aliases => '-s' ,:type => :array, :desc => 'Return only job flows whose state is contained in this list, Valid Values: RUNNING | WAITING | SHUTTING_DOWN | STARTING'
       method_option :table, :aliases => '-t', :type => :boolean, :default => false, :desc => 'Prints out table format'
@@ -79,10 +77,20 @@ module AwsCli
       desc 'create [OPTIONS]', 'creates and starts running a new job flow'
       #TODO: update Long Desc
       long_desc <<-DESC
+        Creates and starts running a new job flow.
+
+        The job flow will run the steps specified. Once the job flow completes, the cluster is stopped and the HDFS partition is lost.
+        To prevent loss of data, configure the last step of the job flow to store results in Amazon S3. Or pass in '--alive' option to keep the cluster running
+        even after the workflow is complete(Note: This requires manual termination of the job flow).
+
+        For additional protection, you can set --termination-protection to lock the job flow and prevent it from being terminated bu API call, user intervention,
+         or in the event of job flow error.
+
+        Using this create command, user can also create hive (--hive-interactive), pig (--pig-interactive), hbase (--hbase-install) interactive clusters.
+
+        See `awscli emr usage` for examples on how to use this interface
       DESC
       method_option :name, :aliases => '-n', :desc => 'The name of the job flow'
-      #method_option :ami_version, :default => 'latest', :desc => 'The version of the Amazon Machine Image (AMI) to use when launching Amazon EC2 instances in the job flow'
-      #method_option :additional_info, :desc => 'A JSON string for selecting additional features.'
       method_option :log_uri, :desc => 'Specifies the location in Amazon S3 to write the log files of the job flow.' #If a value is not provided, logs are not created
       method_option :instance_ec2_key_name, :aliases => '-k', :desc => 'Specifies the name of the Amazon EC2 key pair that can be used to ssh to the master node as the user called hadoop'
       method_option :instance_ec2_subnet_id, :desc => 'Amazon VPC subnet where you want the job flow to launch'
@@ -94,11 +102,11 @@ module AwsCli
       method_option :termination_protection, :type => :boolean, :default => false, :desc => 'Specifies whether to lock the job flow to prevent the Amazon EC2 instances from being terminated by API call'
       method_option :bootstrap_actions, :aliases => '-b', :type => :array, :desc => 'Add bootstrap action script. Format => "name,bootstrap_action_path,bootstrap_action_args"'
       method_option :instance_groups, :aliases => '-g', :type => :array, :desc => 'Add instance groups. Format => "instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price" see usage command for examples'
-      method_option :custom_jar_steps, :aliases => '-s', :type => :array, :desc => 'Add a step that runs a custom jar. Format=> "jar_path(s3)*,main_class*,name_of_step,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1,agr2,arg3"'
+      method_option :custom_jar_steps, :aliases => '-s', :type => :array, :desc => 'Add a step that runs a custom jar. Format=> "jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)"'
       method_option :hive_interactive, :type => :boolean, :default => false, :desc => 'Add a step that sets up the job flow for an interactive (via SSH) hive session'
       method_option :pig_interactive, :type => :boolean, :default => false, :desc => 'Add a step that sets up the job flow for an interactive (via SSH) pig session'
-      method_option :hive_steps, :type => :array, :desc => 'Add a step that runs a Hive script. Format=> script_path(s3)*,input_path(s3),output_path(s3),"-d args1","-d args2","-d arg3"'
-      method_option :pig_steps, :type => :array, :desc => 'Add a step that runs a Pig script. Format=> script_path(s3)*,input_path(s3),output_path(s3),"-p args1","-p args2","-p arg3"'
+      method_option :hive_steps, :type => :array, :desc => 'Add a step that runs a Hive script. Format=> script_path(s3)*,input_path(s3),output_path(s3),extra_args(-d,args1,-d,args2,-d,arg3)'
+      method_option :pig_steps, :type => :array, :desc => 'Add a step that runs a Pig script. Format=> script_path(s3)*,input_path(s3),output_path(s3),extra_args(-p,args1,-p,args2,-p,arg3)'
       method_option :streaming_steps, :type => :array, :desc => 'Add a step that performs hadoop streaming. Format=> input*,output*,mapper*,reducer*,extra_arg1,extra_arg2'
       method_option :hbase_install, :type => :boolean, :default => false, :desc => 'Install hbase on the cluster'
       method_option :hbase_backup_restore, :desc => 'Specify whether to preload the HBase cluster with data stored in Amazon S3. Format=> path(s3)*,version'
@@ -113,7 +121,7 @@ module AwsCli
         @emr.create_job_flow options
       end
 
-      desc 'add_ig', 'adds an instance group(s) to a running cluster'
+      desc 'add_ig [OPTIONS]', 'adds an instance group(s) to a running cluster'
       method_option :job_flow_id, :aliases => '-j', :desc => 'Job flow in which to add the instance groups'
       method_option :instance_groups, :type => :array, :aliases => '-g', :desc => 'Add instance groups. Format => "instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price"'
       def add_ig
@@ -124,7 +132,7 @@ module AwsCli
         @emr.add_instance_groups options[:job_flow_id], options[:instance_groups]
       end
 
-      desc 'add_steps', 'adds new steps to a running job flow'
+      desc 'add_steps [OPTIONS]', 'adds new steps to a running job flow'
       method_option :job_flow_id, :aliases => '-j', :desc => 'A string that uniquely identifies the job flow'
       method_option :steps, :aliases => '-s', :type => :array, :desc => 'Add list of steps to be executed by job flow. Format=> jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)'
       def add_steps

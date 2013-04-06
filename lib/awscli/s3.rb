@@ -10,7 +10,7 @@ module Awscli
         @conn = connection
       end
 
-      def list dir_name, prefix=nil
+      def list(dir_name, prefix=nil)
         dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         puts "LastModified \t SIZE \t Object"
@@ -25,21 +25,24 @@ module Awscli
         end
       end
 
-      def upload_file dir_name, file_path
+      def upload_file(dir_name, file_path, dest_path=nil)
         dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         file = File.expand_path(file_path)
         abort "Invalid file path: #{file_path}" unless File.exist?(file)
+        if dest_path && !dest_path.end_with?('/')
+          dest_path = "#{dest_path}/"
+        end
         file_name = File.basename(file)
         dir.files.create(
-            :key => file_name,
+            :key => "#{dest_path}#{file_name}",
             :body => File.open(file),
             :public => true
           )
         puts "Uploaded file: #{file_name} to bucket: #{dir_name}"
       end
 
-      def upload_file_rec options
+      def upload_file_rec(options)
         dir_name, dir_path, threads_count, is_public = options[:bucket_name], options[:dir_path], options[:thread_count], options[:public]
         dest_path = options[:dest_path] if options[:dest_path]
         #check if bucket exists
@@ -99,7 +102,7 @@ module Awscli
         puts "Uploaded #{total_files} (#{total_size / 1024} KB)"
       end
 
-      def multipart_upload options
+      def multipart_upload(options)
         bucket_name, file_path, tmp_loc, acl = options[:bucket_name], options[:file_path], options[:tmp_dir], options[:acl]
         dir = @conn.directories.get(bucket_name)
         abort "cannot find bucket: #{bucket_name}" unless dir
@@ -173,7 +176,7 @@ module Awscli
         puts "Successfully completed multipart upload"
       end
 
-      def download_file dir_name, file_name, path
+      def download_file(dir_name, file_name, path)
         dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
         local_path = File.expand_path(path)
@@ -186,7 +189,7 @@ module Awscli
         puts "Downloaded file: #{remote_file.key} to path: #{local_path}"
       end
 
-      def delete_file dir_name, file_name
+      def delete_file(dir_name, file_name)
         #TODO: Handle globs for deletions
         dir = @conn.directories.get(dir_name)
         abort "cannot find bucket: #{dir_name}" unless dir
@@ -196,18 +199,18 @@ module Awscli
         puts "Deleted file: #{file_name}"
       end
 
-      def copy_file source_dir, source_file, dest_dir, dest_file
+      def copy_file(source_dir, source_file, dest_dir, dest_file)
         @conn.directories.get(source_dir).files.get(source_file).copy(dest_dir, dest_file)
       end
 
-      def get_public_url dir_name, file_name
+      def get_public_url(dir_name, file_name)
         url = @conn.directories.get(dir_name).files.get(file_name).public_url
         puts "public url for the file: #{file_name} is #{url}"
       end
     end
 
     class Directories
-      def initialize connection, options = {}
+      def initialize(connection, options = {})
         @conn = connection
       end
 
@@ -215,7 +218,7 @@ module Awscli
         @conn.directories.table
       end
 
-      def create bucket_name, is_public
+      def create(bucket_name, is_public)
         dir = @conn.directories.create(
           :key => bucket_name,
           :public => is_public
@@ -235,7 +238,7 @@ module Awscli
         puts "Deleted Bucket: #{dir_name}"
       end
 
-      def delete_rec dir_name
+      def delete_rec(dir_name)
         #Forked from https://gist.github.com/bdunagan/1383301
         data_queue = Queue.new
         semaphore = Mutex.new
@@ -297,24 +300,24 @@ module Awscli
         end
       end
 
-      def get_acl dir_name
+      def get_acl(dir_name)
         dir = @conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
         puts dir.acl
       end
 
-      def set_acl dir_name, acl
+      def set_acl(dir_name, acl)
         dir = @conn.directories.get(dir_name)
         abort "Cannot find bucket #{dir_name}" unless dir
         dir.acl = acl
         puts "Acl has been changed to #{acl}"
       end
 
-      def get_logging_status dir_name
+      def get_logging_status(dir_name)
         puts @conn.get_bucket_logging(dir_name).body['BucketLoggingStatus']
       end
 
-      def set_logging_status dir_name, logging_status = {}
+      def set_logging_status(dir_name, logging_status = {})
         @conn.put_bucket_logging dir_name, logging_status
       end
     end

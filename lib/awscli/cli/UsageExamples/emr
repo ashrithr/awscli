@@ -1,5 +1,5 @@
 #
-# => AWSCLI EMR Usage Examples
+# => AWSCLI EMR CREATE Usage Examples
 #
 
 # => Create Hive cluster
@@ -18,7 +18,12 @@ awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --inst
 # => Hive Job
 awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --instance-ec2-key-name=keyname.pem\
 --instance-count=3 --alive --master-instance-type=m1.small --slave-instance-type=m1.small \
---hive-steps=s3n://yourbucket/hive/script.q,s3n://yourbucket/hive/input,s3n://yourbucket/hive/output,'-d LIBS=s3n://elasticmapreduce/samples/hive-ads/libs'
+--hive-steps=s3n://yourbucket/hive/script.q,s3n://yourbucket/hive/input,s3n://yourbucket/hive/output,-d,'LIBS=s3n://elasticmapreduce/samples/hive-ads/libs'
+
+# => Pig Job
+awscli emr create --name=awsclihivesteps --log-uri=s3://yourbucket/emrlogs --instance-ec2-key-name=keyname.prem\
+--instance-count=2 --alive --master-instance-type=m1.small --slave-instance-type=m1.small \
+--pig-steps="s3n://elasticmapreduce/samples/pig-apache/do-reports2.pig","s3n://elasticmapreduce/samples/pig-apache/input","s3n://ashrithtst/pigsteps/output2"
 
 # => Adding Instance Groups
 awscli emr create --name=awscliemrtest --log-uri=s3n://yourbucket/emrlogs --instance-ec2-key-name=keyname.pem\
