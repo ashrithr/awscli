@@ -81,7 +81,7 @@ module Awscli
           boot_strap_actions << hbase_install_boot_strap
           steps << hbase_install_steps
           #validate hadoop version and instance size
-          abort "Invalid hadoop version #{options[:hadoop_version]}, supported Hadoop Versions for HBase are: #{Awscli::EMR::HBASE_SUPPORTED_HADOOP_VERSIONS.join(',')}" unless Awscli::EMR::HBASE_SUPPORTED_HADOOP_VERSIONS.include?(options[:hadoop_version])
+          abort "Invalid hadoop version #{options[:hadoop_version]}, supported Hadoop Versions for HBase are: #{Awscli::EMR::HBASE_SUPPORTED_HADOOP.join(',')}" unless Awscli::EMR::HBASE_SUPPORTED_HADOOP.include?(options[:hadoop_version])
           options[:instance_groups] && parse_instance_groups(options[:instance_groups]).each do |group|
             unless is_valid_instance_type?(group['InstanceType'])
               abort "Instance type #{group['InstanceType']} is not compatible with HBase, instance size should be equal or greater than m1.large"

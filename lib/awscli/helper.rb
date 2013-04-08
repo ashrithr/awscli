@@ -19,7 +19,7 @@ module Awscli
       '0.20' => '1.0',
       '0.18' => '1.0'
     }
-    HBASE_SUPPORTED_HADOOP_VERSIONS = %w(0.20.205 1.0.3)
+    HBASE_SUPPORTED_HADOOP = %w(0.20.205 1.0.3)
     HBASE_INVALID_INSTANCES = %w(m1.small c1.medium)
   end
 end
