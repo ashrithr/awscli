@@ -57,4 +57,7 @@ module AwsCli
   require 'awscli/cli/iam/profiles'
     #EMR
   require 'awscli/cli/emr'
+    #Dynamo
+  require 'awscli/cli/dynamo'
+  require 'awscli/cli/dynamo/table'
 end

@@ -5,7 +5,7 @@ module Awscli
         @conn = connection
       end
 
-      def list options
+      def list(options)
         validate_job_ids options[:job_flow_ids] if options[:job_flow_ids]
         opts = Marshal.load(Marshal.dump(options))
         opts.reject! { |k| k == 'table' } if options[:table]
@@ -69,7 +69,7 @@ module Awscli
         if options[:pig_steps]
           steps << pig_install unless options[:pig_interactive]
           options[:pig_steps].each do |step|
-            steps << parse_pig_steps(step, options[:hadoop_version])
+            steps << parse_pig_steps(step)
           end
         end
         if options[:streaming_steps]
@@ -235,7 +235,7 @@ module Awscli
         #parse instance_groups => instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price
         instance_groups = []
         groups.each do |group|
-          instance_count, instance_role, instance_size, name, bid_price = ig.split(',')
+          instance_count, instance_role, instance_size, name, bid_price = group.split(',')
           if instance_count.empty? or instance_role.empty? or instance_size.empty?
             abort 'instance_count, instance_role and instance_size are required'
           end
@@ -276,7 +276,6 @@ module Awscli
             'Path' => path
           }
         }
-        boot_strap_actions
       end
 
       def parse_custom_jar(steps)
@@ -333,7 +332,7 @@ module Awscli
         hive_step
       end
 
-      def parse_pig_steps(step, hadoop_version)
+      def parse_pig_steps(step)
         #parse script_path(s3)*,input_path(s3),output_path(s3),'-p','args1','-p','args2','-p','arg3'
         path, input_path, output_path, *args = step.split(',')
         abort 'path to the hive script is required' if path.empty?
