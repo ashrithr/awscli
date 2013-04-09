@@ -42,6 +42,15 @@ module AwsCli
           @ddb.delete options[:name]
         end
 
+        desc 'update', 'updates existing dynamo db table provisioned throughput'
+        method_option :name, :aliases => '-n', :required => true, :desc => 'name of the table to update'
+        method_option :read_capacity, :aliases => '-r', :required => true, :type => :numeric, :desc => 'minimum number of consistent ReadCapacityUnits consumed per second for the specified table'
+        method_option :write_capacity, :aliases => '-w', :required => true, :type => :numeric, :desc => 'minimum number of WriteCapacityUnits consumed per second for the specified table'
+        def update
+          create_dynamo_object
+          @ddb.update options
+        end
+
         private
 
         def create_dynamo_object

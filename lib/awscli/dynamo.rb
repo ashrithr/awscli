@@ -20,7 +20,6 @@ module Awscli
       end
 
       def create(options)
-        #create_table options
         key_schema, provisioned_throughput = {}, {}
         abort 'Invalid key type' unless %w(N NS S SS).include?(options[:pk_type])
         key_schema['HashKeyElement'] = {
@@ -60,8 +59,16 @@ module Awscli
         puts "Delete table #{table_name} successfully."
       end
 
-      def update
-        #update_table
+      def update(options)
+        provisioned_throughput = {}
+        provisioned_throughput['ReadCapacityUnits'] = options[:read_capacity]
+        provisioned_throughput['WriteCapacityUnits'] = options[:write_capacity]
+        @conn.update_table(options[:name], provisioned_throughput)
+      rescue Excon::Errors::BadRequest
+        err_msg = $!.response.data[:body].match(/message.*/)[0].gsub(/[^A-Za-z0-9: ]/, '')
+        puts "[Error] Failed to update table. #{err_msg}"
+      else
+        puts "Table #{options[:name]} provisioned capacity updated successfully."
       end
     end
 
