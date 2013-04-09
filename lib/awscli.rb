@@ -60,4 +60,5 @@ module AwsCli
     #Dynamo
   require 'awscli/cli/dynamo'
   require 'awscli/cli/dynamo/table'
+  require 'awscli/cli/dynamo/item'
 end

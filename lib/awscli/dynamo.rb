@@ -38,8 +38,7 @@ module Awscli
         provisioned_throughput['WriteCapacityUnits'] = options[:write_capacity]
         @conn.create_table(options[:name], key_schema, provisioned_throughput)
       rescue Excon::Errors::BadRequest
-        err_msg = $!.response.data[:body].match(/message.*/)[0].gsub(/[^A-Za-z0-9: ]/, '')
-        puts "[Error] Failed to create table. #{err_msg}"
+        puts "[Error] Failed to create table. #{parse_excon_error_response($!)}"
       else
         puts "Create table #{options[:name]} successfully."
       end
@@ -53,8 +52,7 @@ module Awscli
       def delete(table_name)
         @conn.delete_table(table_name)
       rescue Excon::Errors::BadRequest
-        err_msg = $!.response.data[:body].match(/message.*/)[0].gsub(/[^A-Za-z0-9: ]/, '')
-        puts "[Error] Failed to delete table. #{err_msg}"
+        puts "[Error] Failed to delete table. #{parse_excon_error_response($!)}"
       else
         puts "Delete table #{table_name} successfully."
       end
@@ -65,10 +63,15 @@ module Awscli
         provisioned_throughput['WriteCapacityUnits'] = options[:write_capacity]
         @conn.update_table(options[:name], provisioned_throughput)
       rescue Excon::Errors::BadRequest
-        err_msg = $!.response.data[:body].match(/message.*/)[0].gsub(/[^A-Za-z0-9: ]/, '')
-        puts "[Error] Failed to update table. #{err_msg}"
+        puts "[Error] Failed to update table. #{parse_excon_error_response($!)}"
       else
         puts "Table #{options[:name]} provisioned capacity updated successfully."
+      end
+
+      private
+
+      def parse_excon_error_response(response)
+        response.data[:body].match(/message.*/)[0].gsub(/[^A-Za-z0-9: ]/, '')
       end
     end
 
@@ -85,12 +88,71 @@ module Awscli
         #scan
       end
 
-      def put
-        #put_item
+      def put(options)
+        items = {}
+        opts = {}
+        options[:item].each do |item|
+          abort "invalid item format: #{item}" unless item =~ /(.*):(N|S|NS|SS|B|BS):(.*)/
+          attr_name, attr_type, attr_value = item.split(':')
+          items[attr_name] = { attr_type => attr_value }
+        end
+        if options[:expected_attr] #-a
+          expected_attr_name, expected_attr_type, expected_attr_value = options[:expected_attr].split(':')
+          if expected_attr_name and expected_attr_type and expected_attr_value
+            if options[:expected_exists] and options[:expected_exists] == 'true' #-a Id:S:001 -e true
+              opts['Expected'] = { expected_attr_name => { 'Value' => { expected_attr_type => expected_attr_value }, 'Exists' => options[:expected_exists] } }
+            else #-a Id:S:001
+              opts['Expected'] = { expected_attr_name => { 'Value' => { expected_attr_type => expected_attr_value } } }
+            end
+          elsif expected_attr_name and not expected_attr_type and not expected_attr_value
+            if options[:expected_exists] and options[:expected_exists] == 'false' #-a Id -e false
+              opts['Expected'] = { expected_attr_name => { 'Exists' => options[:expected_exists] } }
+            else
+              abort 'Invalid option combination, see help for usage examples'
+            end
+          else
+            abort 'Invalid option combination, see help for usage examples'
+          end
+        end
+        if options[:return_values]
+          abort 'Invalid return type' unless %w(ALL_NEW ALL_OLD NONE UPDATED_NEW UPDATED_OLD).include?(options[:return_values])
+          opts['ReturnValues'] = options[:return_values]
+        end
+        @conn.put_item(options[:table_name], items, opts)
+      rescue Excon::Errors::BadRequest
+        puts "[Error] Failed to put item into table. #{parse_excon_error_response($!)}"
+      else
+        puts 'Item put succeeded.'
       end
 
-      def get
-        #get_item
+      def get(options)
+        #get_item(table_name, key, options = {})
+        opts = {}
+        key = {}
+        abort 'Invalid --hash-key format' unless options[:hash_key] =~ /(N|S|NS|SS|B|BS):(.*)/
+        hash_key_type, hash_key_name = options[:hash_key].split(':')
+        key['HashKeyElement'] = { hash_key_type => hash_key_name }
+        if options[:range_key]
+          abort 'Invalid --range-key format' unless options[:hash_key] =~ /(N|S|NS|SS|B|BS):(.*)/
+          range_key_type, range_key_name = options[:range_key].split(':')
+          key['RangeKeyElement'] = { range_key_type => range_key_name }
+        end
+
+        opts['AttributesToGet'] = options[:attrs_to_get] if options[:attrs_to_get]
+
+        opts['ConsistentRead'] = true if options[:consistent_read]
+        data = @conn.get_item(options[:table_name], key, opts)
+      rescue Excon::Errors::BadRequest
+        puts "[Error] Failed to get item from table. #{parse_excon_error_response($!)}"
+      else
+        #TODO: Pretty print this
+        puts 'Retrieved Items:'
+        puts "ColumnName \t Type \t Value"
+        data.body['Item'].each do |attr, pair|
+          print "#{attr} \t"
+          pair.map {|type,value|  print "#{type} \t #{value}"}
+          puts
+        end
       end
 
       def batch_get
@@ -107,6 +169,12 @@ module Awscli
 
       def delete
         #delete_item
+      end
+
+      private
+
+      def parse_excon_error_response(response)
+        response.response.data[:body].match(/message.*/)[0].gsub(/[^A-Za-z0-9: ]/, '')
       end
     end
   end
