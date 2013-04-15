@@ -71,5 +71,17 @@ module Awscli
       Fog::AWS::EMR.new(@config)
     end
 
+    def request_dynamo(region=nil)
+      # => returns AWS DynamoDB object
+      if region
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(region)
+        @config.reject!{ |key| key == 'region' } if @config['region']
+        @config.merge!(:region => region)
+      else
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@config['region']) if @config['region']
+      end
+      Fog::AWS::DynamoDB.new(@config)
+    end
+
   end
 end

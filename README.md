@@ -1,13 +1,16 @@
 awscli
 ======
 
-Amazon Web Service Command Line Interface
+Amazon Web Service(s) Command Line Interface
 
-Provides support for following interface:
+Provides the following interface:
 
 - Elastic Cloud Compute (EC2)
 - Auto Scaling Group (AS)
 - Simple Storage Service (S3)
+- AWS Identity and Access Management Interface (IAM)
+- Elastic MapReduce (EMR)
+- DynamoDB
 
 More interfaces are in development.
 

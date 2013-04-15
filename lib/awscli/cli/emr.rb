@@ -4,7 +4,7 @@ module AwsCli
     require 'awscli/connection'
     require 'awscli/emr'
     class Emr < Thor
-      class_option :region, :type => :string, :desc => "region to connect to", :default => 'us-west-1'
+      class_option :region, :type => :string, :desc => 'region to connect to', :default => 'us-west-1'
 
       desc 'usage', 'show the usage examples'
       def usage
@@ -75,7 +75,6 @@ module AwsCli
       end
 
       desc 'create [OPTIONS]', 'creates and starts running a new job flow'
-      #TODO: update Long Desc
       long_desc <<-DESC
         Creates and starts running a new job flow.
 
@@ -113,7 +112,7 @@ module AwsCli
       method_option :hbase_backup_schedule, :desc => 'Specify whether to schedule automatic incremental backups. Format=> frequency*,frequency_unit*(Days|Hours|Mins),path(s3)*,start_time*(now|date)'
       method_option :hbase_consistent_backup, :type => :boolean, :default => false, :desc => 'Perform a consistent backup'
       def create
-        if !options[:name]
+        unless options[:name]
           puts 'These options are required --name'
           exit
         end
@@ -126,7 +125,7 @@ module AwsCli
       method_option :instance_groups, :type => :array, :aliases => '-g', :desc => 'Add instance groups. Format => "instance_count,instance_role(MASTER | CORE | TASK),instance_type,name,bid_price"'
       def add_ig
         unless options[:job_flow_id] and options[:instance_groups]
-          abort "--job-flow-id and --instance-groups are required"
+          abort '--job-flow-id and --instance-groups are required'
         end
         create_emr_object
         @emr.add_instance_groups options[:job_flow_id], options[:instance_groups]
@@ -137,17 +136,18 @@ module AwsCli
       method_option :steps, :aliases => '-s', :type => :array, :desc => 'Add list of steps to be executed by job flow. Format=> jar_path(s3)*,name_of_step*,main_class,action_on_failure(TERMINATE_JOB_FLOW | CANCEL_AND_WAIT | CONTINUE),arg1=agr2=arg3,properties(k=v,k=v)'
       def add_steps
         unless options[:job_flow_id] and options[:steps]
-          abort "--job-flow-id and --steps are required"
+          abort '--job-flow-id and --steps are required'
         end
         create_emr_object
         @emr.add_steps options[:job_flow_id], options[:steps]
       end
+
       private
 
       def create_emr_object
-        puts 'EMR Establishing Connetion...'
+        puts 'EMR Establishing Connection...'
         $emr_conn =  Awscli::Connection.new.request_emr
-        puts 'EMR Establishing Connetion... OK'
+        puts 'EMR Establishing Connection... OK'
         @emr = Awscli::Emr::EMR.new($emr_conn)
       end
 
