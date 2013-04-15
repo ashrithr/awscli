@@ -5,6 +5,7 @@ module Awscli
     INSTANCE_TYPES = %w(on-demand spot)
     REGIONS = %w(eu-west-1 sa-east-1 us-east-1 ap-northeast-1 us-west-2 us-west-1 ap-southeast-1 ap-southeast-2)
   end
+
   module EMR
     VALID_JOB_FLOW_STATUS = %w(RUNNING WAITING SHUTTING_DOWN STARTING)
     HADOOP_HIVE_COMPATIBILITY = {
