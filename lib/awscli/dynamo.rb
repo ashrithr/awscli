@@ -174,8 +174,17 @@ module Awscli
         opts = {}
         options[:item].each do |item|
           abort "invalid item format: #{item}" unless item =~ /(.*):(N|S|NS|SS|B|BS):(.*)/
-          attr_name, attr_type, attr_value = item.split(':')
-          items[attr_name] = { attr_type => attr_value }
+          attr_name, attr_type, attr_value = item.split(':', 3)
+          case attr_type
+            when 'N', 'S', 'B'
+              items[attr_name] = { attr_type => attr_value }
+            when 'NS', 'SS', 'BS'
+              attr_value_arry = attr_value.split(';')
+              abort 'Invalid attribute value format, attributes should be comma separated values' if attr_value_arry.empty?
+              items[attr_name] = { attr_type => attr_value_arry }
+            else
+              abort 'Invalid attribute type'
+          end
         end
         if options[:expected_attr] #-a
           expected_attr_name, expected_attr_type, expected_attr_value = options[:expected_attr].split(':')
@@ -272,14 +281,23 @@ module Awscli
         #request_items['RequestItems'] = {}
         options[:put_requests] and options[:put_requests].each do |request|
           #table_name,col_name1:col_type1:col_value1,col_name2:col_type2:col_value2 ..
-          table_name, *cols = request.split(',')
+          table_name, *cols = request.split(/,(?=(?:[^']|'[^']*')*$)/)
           request_items[table_name] ||= []
           put_request = {}
           put_request['PutRequest'] = {}
           put_request['PutRequest']['Item'] = {}
           cols.each do |col|
-            col_name, col_type, col_value = col.split(':')
-            put_request['PutRequest']['Item'][col_name] = { col_type => col_value }
+            col_name, col_type, col_value = col.split(':', 3)
+            case col_type
+              when 'N', 'S', 'B'
+                put_request['PutRequest']['Item'][col_name] = { col_type => col_value }
+              when 'NS', 'SS', 'BS'
+                col_value_arry = col_value.split(';')
+                abort 'Invalid attribute value format, attributes should be comma separated values' if col_value_arry.empty?
+                put_request['PutRequest']['Item'][col_name] = { col_type => col_value_arry }
+              else
+                abort "Invalid attribute type: #{col_type}"
+            end
           end
           request_items[table_name] << put_request
         end

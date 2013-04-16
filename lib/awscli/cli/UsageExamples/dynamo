@@ -1,0 +1,33 @@
+#Sample awscli dynamo usage examples:
+
+# => Create tables
+awscli dynamo table create -n ProductCatalog -k Id -t N -r 5 -w 5
+awscli dynamo table create -n Forum -k Name -t S -r 5 -w 5
+awscli dynamo table create -n Thread -k ForumName -t S --rk-name Subject --rk-type S -r 5 -w 5
+awscli dynamo table create -n Reply -k Id -t S --rk-name ReplyDateTime --rk-type S -r 5 -w 5
+
+#Individual Puts
+awscli dynamo item put -t ProductCatalog -i Id:N:101 Title:S:'Book 101 Title' ISBN:S:'111-1111111111' Authors:SS:'Author1,Author2' Price:N:2 Dimensions:S:'8.5 x 11.0 x 0.5' PageCount:N:500 InPublication:N:1 ProductCategory:S:Book
+awscli dynamo item put -t ProductCatalog -i Id:N:102 Title:S:'Book 102 Title' ISBN:S:'222-2222222222' Authors:SS:'Author2' Price:N:20 Dimensions:S:'8.5 x 11.0 x 0.8' PageCount:N:600 InPublication:N:1 ProductCategory:S:Book
+awscli dynamo item put -t ProductCatalog -i Id:N:103 Title:S:'Book 103 Title' ISBN:S:'333-3333333333' Authors:SS:'Author1,Author2' Price:N:2000 Dimensions:S:'8.5 x 11.0 x 1.5' PageCount:N:600 InPublication:N:0 ProductCategory:S:Book
+awscli dynamo item put -t ProductCatalog -i Id:N:201 Title:S:'18-Bike-201' Description:S:'201 Description' BicycleType:S:Road Brand:S:'Mountain A' Price:N:100 Gender:S:M Color:SS:'Green,Red' ProductCategory:S:Bicycle
+awscli dynamo item put -t ProductCatalog -i Id:N:202 Title:S:'21-Bike-202' Description:S:'202 Description' BicycleType:S:Road Brand:S:'Brand-Company A' Price:N:200 Gender:S:M Color:SS:'Green,Black' ProductCategory:S:Bicycle
+awscli dynamo item put -t ProductCatalog -i Id:N:203 Title:S:'19-Bike-203' Description:S:'203 Description' BicycleType:S:Road Brand:S:'Brand-Company B' Price:N:300 Gender:S:W Color:SS:'Red,Green,Black' ProductCategory:S:Bicycle
+awscli dynamo item put -t ProductCatalog -i Id:N:204 Title:S:'18-Bike-204' Description:S:'204 Description' BicycleType:S:Mountain Brand:S:'Brand-Company B' Price:N:400 Gender:S:W Color:SS:'Red' ProductCategory:S:Bicycle
+awscli dynamo item put -t ProductCatalog -i Id:N:205 Title:S:'20-Bike-205' Description:S:'205 Description' BicycleType:S:Hybrid Brand:S:'Brand-Company C' Price:N:500 Gender:S:B Color:SS:'Red,Black' ProductCategory:S:Bicycle
+
+#Batch Writes
+awscli dynamo item batch_write --put-requests Forum,Name:S:'Amazon DynamoDB',Category:S:'AWS',Threads:N:2,Messages:N:4,Views:N:1000 Forum,Name:S:'Amazon S3',Category:S:'AWS',Threads:N:0 Thread,ForumName:S:'Amazon DynamoDB',Subject:S:'DynamoDB Thread 1',Message:S:'DynamoDB thread 1 message',LastPostedBy:S:'User A',LastPostedDateTime:S:'2013-04-02 13:49:13 -0700',Views:N:0,Reply:N:0,Answered:N:0,Tags:SS:'index;primarykey;table' Thread,ForumName:S:'Amazon DynamoDB',Subject:S:'DynamoDB Thread 2',Message:S:'DynamoDB thread 2 message',LastPostedBy:S:'User A',LastPostedDateTime:S:'2013-03-19 13:56:48 -0700',Views:N:0,Reply:N:0,Answered:N:0,Tags:SS:'index;primarykey;rangekey' Thread,ForumName:S:'Amazon S3',Subject:S:'S3 Thread 1',Message:S:'S3 thread 1 message',LastPostedBy:S:'User A',LastPostedDateTime:S:'2013-03-19 13:56:48 -0700',Views:N:0,Reply:N:0,Answered:N:0,Tags:SS:'largeobjects;multipart upload'
+awscli dynamo item batch_write --put-requests Reply,Id:S:'Amazon DynamoDB#DynamoDB Thread 1',ReplyDateTime:S:'2013-04-02 13:49:13 -0700',Message:S:'DynamoDB Thread 1 Reply 1 text',PostedBy:S:'User A' Reply,Id:S:'Amazon DynamoDB#DynamoDB Thread 1',ReplyDateTime:S:'2013-04-09 15:00:54 -0700',Message:S:'DynamoDB Thread 1 Reply 2 text',PostedBy:S:'User B' Reply,Id:S:'Amazon DynamoDB#DynamoDB Thread 2',ReplyDateTime:S:'2013-04-09 12:30:12 -0700',Message:S:'DynamoDB Thread 2 Reply 1 text',PostedBy:S:'User A' Reply,Id:S:'Amazon DynamoDB#DynamoDB Thread 2',ReplyDateTime:S:'2013-04-12 04:12:30 -0700',Message:S:'DynamoDB Thread 2 Reply 2 text',PostedBy:S:'User A'
+
+#Sample Queries
+#Get an item from the ProductCatalog table whose Id is 101 and get attributes Id,ISBN,Title,Authors
+awscli dynamo item get -t ProductCatalog -k N:101 -g Id ISBN Title Authors
+#Query the Reply table to find replies posted in the last 15 days
+awscli dynamo item query -t Reply -v S,"Amazon DynamoDB#DynamoDB Thread 1" -f LT,S,"2013-04-09 12:30:12 -0700"
+
+#Delete tables
+awscli dynamo table delete -n ProductCatalog
+awscli dynamo table delete -n Forum
+awscli dynamo table delete -n Thread
+awscli dynamo table delete -n Reply
