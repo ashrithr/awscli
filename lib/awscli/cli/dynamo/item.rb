@@ -38,6 +38,10 @@ module AwsCli
 
           `awscli dynamo item put -t test_table -i Id:N:1 UserName:S:test_user`
 
+          Put a Multi-Valued(NS|SS|BS) attribute into a table:
+
+          `awscli dynamo item put -t ProductCatalog -i Id:N:101 Authors:SS:'Author1;Author2'`
+
            #{conditional_item}
 
           `awscli dynamo item put -t test -i Id:N:1 UserName:S:test_user -a UserName:S:test -e true -r ALL_OLD`
@@ -121,6 +125,13 @@ module AwsCli
         end
 
         desc 'query [OPTIONS]', 'returns one or more items and their attributes by primary key (only available for hash-and-range primary key tables)'
+        long_desc <<-DESC
+        Usage Example:
+
+        Query the 'Reply' table to get last 15 days replies from thread 1:
+
+        `awscli dynamo item query -t Reply -v S,"Amazon DynamoDB#DynamoDB Thread 1" -f LT,S,"2013-04-09 12:30:12 -0700"`
+        DESC
         method_option :table_name, :aliases => '-t', :desc => 'name of the table containing the requested items'
         method_option :attrs_to_get, :aliases => '-g', :type => :array, :desc => 'array of attribute names, if attribute names are not specified then all attributes will be returned'
         method_option :limit, :aliases => '-l', :type => :numeric, :desc => 'limit of total items to return'
@@ -222,7 +233,7 @@ module AwsCli
 
         The following batch_write operation will put an item into User, Item tables and deletes item from User, Thread tables
 
-        `bundle exec bin/awscli dynamo item batch_write --put-requests User,Id:S:003,UserName:S:user123,Password:S:secret123 Item,Id:S:'Amazon Dynamo DB#Thread 5',ReplyDateTime:S:'2012-04-03T11:04:47.034Z' --delete-requests User,S=003 Thread,S='Amazon DynamoDB#Thread 4':S='oops - accidental row'`
+        `bundle exec bin/awscli dynamo item batch_write --put-requests User,Id:S:003,UserName:S:user123,Password:S:secret123 Item,Id:S:'Amazon Dynamo DB#Thread 5',ReplyDateTime:S:'2012-04-03T11:04:47.034Z',Comments:SS:'Test;Another' --delete-requests User,S=003 Thread,S='Amazon DynamoDB#Thread 4':S='oops - accidental row'`
         DESC
         method_option :put_requests, :aliases => '-p', :type => :array, :desc => 'Format=> table_name,col_name1:col_type1:col_value1,col_name2:col_type2:col_value2 ..'
         method_option :delete_requests, :aliases => '-d', :type => :array, :desc => 'Format=> table_name,hash_key_type*=hash_key_value*:range_key_type=range_key_value ..'

@@ -20,6 +20,18 @@ module AwsCli
         end
 
         desc 'create', 'create a new table'
+        long_desc <<-DESC
+          Usage Examples:
+
+          Create table named 'ProductCatalog' with primary hash key 'Id' of type 'Number' and provisioned Throughput read
+          capacity & write capacity of 5:
+
+          `awscli dynamo table create -n ProductCatalog -k Id -t N -r 5 -w 5`
+
+          Create table named 'Thread' with primary hash key 'ForumName' of type String and primary range key 'Subject' of type String:
+
+          `awscli dynamo table create -n Thread -k ForumName -t S --rk-name Subject --rk-type S -r 5 -w 5`
+        DESC
         method_option :name, :aliases => '-n', :required => true, :desc => 'name of the table to create, name should be unique among your account'
         method_option :pk_name, :aliases => '-k', :required => true, :desc => 'primary key hash attribute name for the table'
         method_option :pk_type, :aliases => '-t', :required => true, :desc => 'type of the hash attribute, valid values in [N, NS, S, SS]. N-Number, NS-NumberSet, S-String, SS-StringSet'
