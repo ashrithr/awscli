@@ -19,7 +19,12 @@ More interfaces are in development.
 
 To Install Use:
 
-`gem install awscli`
+```
+sudo gem install awscli
+```
+
+Note: `awscli` depends on nokogiri gem which needs to be compiled and dynamically linked against both libxml2 and libxslt, for installing dependencies follow this link:
+<http://nokogiri.org/tutorials/installing_nokogiri.html>
 
 For help using cli:
 
