@@ -192,6 +192,13 @@ module AwsCli
           @ec2.terminate_instance options[:instance_id]
         end
 
+        desc "terminate_all", "terminate all running instances (causes data loss)"
+        method_option :delete_volumes, :aliases => "-v", :type => :boolean, :desc => "delete the ebs volumes attached to instance if any", :default => false
+        def terminate_all
+          create_ec2_object
+          @ec2.terminate_instances options[:delete_volumes]
+        end
+
         desc "console_output", "Retrieve console output for specified instance"
         method_option :instance_id, :aliases => "-i", :required => true, :banner => "ID", :desc => "instance id to get console output from"
         def console_output

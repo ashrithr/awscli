@@ -184,9 +184,35 @@ module Awscli
         end
       end
 
+      # terminates all the instances that are running
+      def terminate_instances(delete_attached_volumes = false)
+        block_mappings = []
+        if agree('Are you sure want to delete all the servers that are running ?  ')
+          @conn.servers.all.each do |server|
+            server.destroy if server.state == 'running'
+            block_mappings << server.block_device_mapping
+          end
+        end
+        if delete_attached_volumes
+          if agree('Are you sure you want to delete the volumes attached to the instance as well?  ')
+            unless block_mappings.length == 0
+              block_mappings.each do |server|
+                server.each do |map|
+                  vol = @conn.volumes.get(map['volumeId'])
+                  vol.wait_for { vol.state == 'available' }
+                  vol.destroy if map['deleteOnTermination'] != 'true'
+                end
+              end
+            end
+          end
+        end
+      end
+
+      # get the console_output from instance
       def get_console_output(instance_id)
         response = @conn.get_console_output(instance_id)
-        puts response
+        output = response.data['output']
+        output.nil? ? puts('No console output attached yet!') : puts(output)
       end
 
     end # => EC2
