@@ -162,6 +162,63 @@ module AwsCli
           @ec2.create_instance options
         end
 
+        desc 'create_centos', 'Create a centos based instance, ebs_backed with root being 100GB (user has to manually execute resize2fs /dev/sda to reclaim extra storage on root device)'
+        method_option :count, :aliases => '-c', :type => :numeric, :default => 1, :desc => 'Number of instances to launch'
+        method_option :groups,:aliases => '-g', :banner => 'SG1 SG2 SG3',:type => :array, :default => %w(default), :desc => "Name of security group(s) for instances (not supported for VPC). Default: 'default'"
+        method_option :flavor_id, :aliases => '-t', :default => 'm1.small', :desc => 'Type of the instance to boot'
+        method_option :key_name, :aliases => '-k', :required => true, :desc => 'Name of the keypair to use'
+        method_option :tags, :type => :hash, :default => {'Name' => "awscli-centos-#{Time.now.to_i}"}, :desc => "Tags to identify server"
+        def create_centos
+          create_ec2_object
+          centos_amis    = {
+              'us-east-1'       => 'ami-a96b01c0',  #Virginia
+              'us-west-1'       => 'ami-51351b14',  #Northern California
+              'us-west-2'       => 'ami-bd58c98d',  #Oregon
+              'eu-west-1'       => 'ami-050b1b71',  #Ireland
+              'ap-southeast-1'  => 'ami-23682671',  #Singapore
+              'ap-southeast-2'  => 'ami-ffcd5ec5',  #Sydney
+              'ap-northeast-1'  => 'ami-3fe8603e',  #Tokyo
+              'sa-east-1'       => 'ami-e2cd68ff',  #Sao Paulo
+          }
+          options[:count].times do
+            @ec2.create_instance  :image_id             => centos_amis[parent_options[:region]],
+                                  :block_device_mapping => %w(/dev/sda=:100:true::),
+                                  :groups               => options[:groups],
+                                  :flavor_id            => options[:flavor_id],
+                                  :key_name             => options[:key_name],
+                                  :tags                 => options[:tags]
+          end
+        end
+
+        desc 'create_ubuntu', 'Create a ubuntu based instance, ebs_backed with root being 100GB (user has to manually execute resize2fs /dev/sda1 to reclaim extra storage on root device)'
+        method_option :count, :aliases => '-c', :type => :numeric, :default => 1, :desc => 'Number of instances to launch'
+        method_option :groups,:aliases => '-g', :banner => 'SG1 SG2 SG3',:type => :array, :default => %w(default), :desc => "Name of security group(s) for instances (not supported for VPC). Default: 'default'"
+        method_option :flavor_id, :aliases => '-t', :default => 'm1.small', :desc => 'Type of the instance to boot'
+        method_option :key_name, :aliases => '-k', :required => true, :desc => 'Name of the keypair to use'
+        method_option :tags, :type => :hash, :default => {'Name' => "awscli-ubuntu-#{Time.now.to_i}"}, :desc => "Tags to identify server"
+        def create_ubuntu
+          create_ec2_object
+          ubuntu_amis    = {
+              'us-east-1'       => 'ami-9b85eef2',  #Virginia
+              'us-west-1'       => 'ami-9b2d03de',  #Northern California
+              'us-west-2'       => 'ami-77be2f47',  #Oregon
+              'eu-west-1'       => 'ami-f5736381',  #Ireland
+              'ap-southeast-1'  => 'ami-085b155a',  #Singapore
+              'ap-southeast-2'  => 'ami-37c0530d',  #Sydney
+              'ap-northeast-1'  => 'ami-57109956',  #Tokyo
+              'sa-east-1'       => 'ami-a4fb5eb9',  #Sao Paulo
+          }
+          options[:count].times do
+            @ec2.create_instance  :image_id             => ubuntu_amis[parent_options[:region]],
+                                  :block_device_mapping => %w(/dev/sda1=:100:true::),
+                                  :groups               => options[:groups],
+                                  :flavor_id            => options[:flavor_id],
+                                  :key_name             => options[:key_name],
+                                  :tags                 => options[:tags],
+                                  :wait_for             => true if options[:count] == 1
+          end
+        end
+
         desc "start", "start instances"
         long_desc <<-LONGDESC
           Start selected running instances.
