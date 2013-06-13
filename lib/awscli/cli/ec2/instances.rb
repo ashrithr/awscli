@@ -214,8 +214,7 @@ module AwsCli
                                   :groups               => options[:groups],
                                   :flavor_id            => options[:flavor_id],
                                   :key_name             => options[:key_name],
-                                  :tags                 => options[:tags],
-                                  :wait_for             => true if options[:count] == 1
+                                  :tags                 => options[:tags]
           end
         end
 
