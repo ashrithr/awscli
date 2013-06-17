@@ -94,7 +94,7 @@ module Awscli
             #parse options
             abort "Invalid block device mapping format, expecting 'devicename=blockdevice' format" unless group =~ /\S=\S/
             device_name, block_device = group.split("=")
-            abort "Invalid device name, expecting '/dev/sd[a-z]'" unless device_name =~ /^\/dev\/sd[a-z][0-9]$/
+            abort "Invalid device name, expecting '/dev/sd[a-z]'" unless device_name =~ /^\/dev\/(sd[a-z][0-9]|sd[a-z])$/
             abort "Invalid block device format, expecting 'ephemeral[0..3]|none|[snapshot-id]:[volume-size]:[true|false]:[standard|io1[:iops]]'" unless block_device =~ /^(snap-.*|ephemeral\w{1,3}|none|:.*)$/
             mapping['DeviceName'] = device_name
             case block_device
