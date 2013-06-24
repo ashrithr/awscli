@@ -121,6 +121,10 @@ module AwsCli
 
           `awscli ec2 instances create -i ami-b63210f3 -k ruby-sample-1363113606 -b "/dev/sdb=ephemeral10" "/dev/sdc=:10:false::"`
 
+          Running Multiple Instances:
+
+          `awscli ec2 instances create -i <ami_id> -c 10 -k <key_name> -b "/dev/sdd=:100:false::"`
+
           Block Device Mapping Format:
           This argument is passed in the form of <devicename>=<blockdevice>. The devicename is the device name of the physical device on the instance to map. The blockdevice can be one of the following values:
 
@@ -157,6 +161,7 @@ module AwsCli
         method_option :tags,                 :type => :hash, :default => {'Name' => "awscli-#{Time.now.to_i}"}, :desc => "Tags to identify server"
         method_option :private_ip_address,   :banner => "IP",:type => :string, :desc => "VPC option to specify ip address within subnet"
         method_option :wait_for,             :aliases => "-w", :type => :boolean, :default => false, :desc => "wait for the server to get created and return public_dns"
+        method_option :count,                :aliases => '-c', :type => :numeric, :default => 1, :desc => 'Number of instances to launch'
         def create
           create_ec2_object
           @ec2.create_instance options
@@ -168,6 +173,7 @@ module AwsCli
         method_option :flavor_id, :aliases => '-t', :default => 'm1.small', :desc => 'Type of the instance to boot'
         method_option :key_name, :aliases => '-k', :required => true, :desc => 'Name of the keypair to use'
         method_option :tags, :type => :hash, :default => {'Name' => "awscli-centos-#{Time.now.to_i}"}, :desc => "Tags to identify server"
+        method_option :wait_for, :aliases => "-w", :type => :boolean, :default => false, :desc => "wait for the server to get created and return public_dns"
         def create_centos
           create_ec2_object
           centos_amis    = {
@@ -180,14 +186,14 @@ module AwsCli
               'ap-northeast-1'  => 'ami-3fe8603e',  #Tokyo
               'sa-east-1'       => 'ami-e2cd68ff',  #Sao Paulo
           }
-          options[:count].times do
-            @ec2.create_instance  :image_id             => centos_amis[parent_options[:region]],
-                                  :block_device_mapping => %w(/dev/sda=:100:true::),
-                                  :groups               => options[:groups],
-                                  :flavor_id            => options[:flavor_id],
-                                  :key_name             => options[:key_name],
-                                  :tags                 => options[:tags]
-          end
+          @ec2.create_instance  :image_id             => centos_amis[parent_options[:region]],
+                                :block_device_mapping => %w(/dev/sda=:100:true::),
+                                :groups               => options[:groups],
+                                :flavor_id            => options[:flavor_id],
+                                :key_name             => options[:key_name],
+                                :tags                 => options[:tags],
+                                :count                => options[:count],
+                                :wait_for             => options[:wait_for]
         end
 
         desc 'create_ubuntu', 'Create a ubuntu based instance, ebs_backed with root being 100GB (user has to manually execute resize2fs /dev/sda1 to reclaim extra storage on root device)'
@@ -196,6 +202,7 @@ module AwsCli
         method_option :flavor_id, :aliases => '-t', :default => 'm1.small', :desc => 'Type of the instance to boot'
         method_option :key_name, :aliases => '-k', :required => true, :desc => 'Name of the keypair to use'
         method_option :tags, :type => :hash, :default => {'Name' => "awscli-ubuntu-#{Time.now.to_i}"}, :desc => "Tags to identify server"
+        method_option :wait_for, :aliases => "-w", :type => :boolean, :default => false, :desc => "wait for the server to get created and return public_dns"
         def create_ubuntu
           create_ec2_object
           ubuntu_amis    = {
@@ -208,14 +215,15 @@ module AwsCli
               'ap-northeast-1'  => 'ami-57109956',  #Tokyo
               'sa-east-1'       => 'ami-a4fb5eb9',  #Sao Paulo
           }
-          options[:count].times do
-            @ec2.create_instance  :image_id             => ubuntu_amis[parent_options[:region]],
-                                  :block_device_mapping => %w(/dev/sda1=:100:true::),
-                                  :groups               => options[:groups],
-                                  :flavor_id            => options[:flavor_id],
-                                  :key_name             => options[:key_name],
-                                  :tags                 => options[:tags]
-          end
+          @ec2.create_instance  :image_id             => ubuntu_amis[parent_options[:region]],
+                                :block_device_mapping => %w(/dev/sda1=:100:true::),
+                                :groups               => options[:groups],
+                                :flavor_id            => options[:flavor_id],
+                                :key_name             => options[:key_name],
+                                :tags                 => options[:tags],
+                                :count                => options[:count],
+                                :wait_for             => options[:wait_for]
+
         end
 
         desc "start", "start instances"

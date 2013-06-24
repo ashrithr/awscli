@@ -117,25 +117,37 @@ module Awscli
         if block_devices = opts.delete(:block_device_mapping)
           opts.merge!(:block_device_mapping => block_device_mapping)
         end
-        wait_for_server = options[:wait_for] && opts.reject! { |k| k == 'wait_for' }
+        wait_for_server = options[:wait_for]
+        opts.reject! { |k| k == 'wait_for' }
+        count = options[:count]
+        opts.reject! { |k| k == 'count' }
         puts 'Validating Options ... OK'
-        puts 'Creating Server'
-        server = @conn.servers.create(opts)
+        servers = Array.new
+        puts "Creating #{count} Server(s) ..."
+        count.times { servers << @conn.servers.create(opts) }
         #wait for server to get created and return public_dns
         if wait_for_server
-          print 'Waiting for server to get created'
-          server.wait_for { print "."; ready? }
-          puts
-          puts "Server dns_name: #{server.dns_name}"
+          if count == 1
+            print 'Waiting for server to get created'
+            servers.first.wait_for { print "."; ready? }
+            puts
+            puts "Server dns_name: #{servers.first.dns_name}"
+          else
+            print 'Waiting for servers to get created'
+            servers.each do |s|
+              s.wait_for { print '.'; ready? }
+            end
+            puts
+            puts 'Servers dns_name: '
+            servers.each do |s|
+              puts s.dns_name
+            end
+          end
         end
       end
 
-      ## create a new instance(s)
-      #def run_instances options
-      #end
-
       # describe instance status
-      def describe_instance_status(instnace_id)
+      def describe_instance_status(instance_id)
         response = @conn.servers.get(instance_id)
         abort "InstanceId Not found :#{instance_id}" unless response
         puts "Instance #{instance_id} State: #{response.state}"
@@ -145,7 +157,7 @@ module Awscli
       #def import_instance
       #end
 
-      #@conn.server.get(instanceid).(:reboot, :save, :setup, :start, :stop)
+      #@conn.server.get(instance_id).(:reboot, :save, :setup, :start, :stop)
       # reboot an instance
       def reboot_instance(instance_id)
         response = @conn.servers.get(instance_id)
