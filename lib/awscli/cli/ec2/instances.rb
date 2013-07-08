@@ -2,9 +2,20 @@ module AwsCli
   module CLI
     module EC2
       require 'awscli/cli/ec2'
+      require 'awscli/helper'
       class Instances < Thor
 
         # default_task :list
+
+        desc 'list_sizes', 'lists available sizes of vms'
+        def list_sizes
+          puts Awscli::Instances::INSTANCE_SIZES
+        end
+
+        desc 'list_regions', 'lists available regions to connect to'
+        def list_regions
+          puts Awscli::Instances::REGIONS
+        end
 
         desc "list", "list the instances"
         long_desc <<-LONGDESC
