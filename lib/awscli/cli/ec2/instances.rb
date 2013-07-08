@@ -24,10 +24,19 @@ module AwsCli
          If unspecified all your instances will be returned.
         LONGDESC
         def list
-          puts "Listing Instances"
+          puts "Listing Instances for region: #{parent_options[:region]}"
           create_ec2_object
           # puts parent_options #access awscli/cli/ec2.rb class options
           @ec2.list_instances
+        end
+
+        desc "list_all", "lists instances for all regions"
+        def list_all
+          Awscli::Instances::REGIONS.each do |region|
+            puts "Listing instances for region: #{region}"
+            ec2 = Awscli::EC2::EC2.new(Awscli::Connection.new.request_ec2 region)
+            ec2.list_instances
+          end
         end
 
         desc "diatt", "list instance attributes"
