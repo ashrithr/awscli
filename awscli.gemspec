@@ -8,7 +8,7 @@ spec = Gem::Specification.new do |s|
   s.homepage = 'http://github.com/ashrithr/awscli'
   s.platform = Gem::Platform::RUBY
   s.summary = 'Command Line Interface for Amazon Web Services built in Ruby, using Fog and Thor'
-  s.description = "#{s.summary}, This gem is still in development."
+  s.description = "#{s.summary}"
 
   #Files
   s.files = Dir['Rakefile', '{bin,lib,man,test,spec}/**/*', 'README*', 'LICENSE'] & `git ls-files -z`.split("\0")
