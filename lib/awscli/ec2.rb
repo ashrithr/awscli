@@ -201,7 +201,7 @@ module Awscli
         block_mappings = []
         if agree('Are you sure want to delete all the servers that are running ?  ')
           @conn.servers.all.each do |server|
-            server.destroy if server.state == 'running'
+            server.destroy if server.state == 'running' || server.state == 'stopped'
             block_mappings << server.block_device_mapping
           end
         end
