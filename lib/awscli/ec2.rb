@@ -615,7 +615,7 @@ module Awscli
       end
 
       def list
-        @conn.describe_placement_groups
+        Formatador.display_table(@conn.describe_placement_groups.body['placementGroupSet'])
       end
 
       def create(options)
