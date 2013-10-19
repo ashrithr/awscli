@@ -30,6 +30,13 @@ module AwsCli
           @ec2.list_instances
         end
 
+        desc "describe_instance", "list all instnace parameters"
+        method_option :instance_id, :aliases => "-i", :banner => "INSTANCEID", :type => :string, :desc => "Id of the instance to describe"
+        def describe_instance
+          create_ec2_object
+          @ec2.describe_instance(options)
+        end
+
         desc "list_all", "lists instances for all regions"
         def list_all
           Awscli::Instances::REGIONS.each do |region|

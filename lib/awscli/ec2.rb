@@ -1,5 +1,6 @@
 module Awscli
   module EC2
+    require 'pp'
 
     class EC2
 
@@ -63,6 +64,15 @@ module Awscli
         else
           puts "#{instance_id}, #{attrs_lookup[attributename]}.Value => #{attributevalue}"
           @conn.modify_instance_attribute(instance_id, "#{attrs_lookup[attributename]}.Value" => attributevalue)
+        end
+      end
+
+      # describe one or more instances
+      def describe_instance(options)
+        if options[:instance_id]
+          pp @conn.describe_instances('instance-id' => options[:instance_id]).data[:body]
+        else
+          pp @conn.describe_instances.data[:body]
         end
       end
 
