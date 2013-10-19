@@ -2,7 +2,6 @@ module AwsCli
   #This it the main cli runner class
   #All class_methods should be defined here except for Thor::Groups
   class Cli < ::Thor
-
     default_task :help_banner   #if no option is passed call help_banner task
     # class_option :config, :banner => "PATH", :type => :string,
     #              :desc => 'Configuration file, accepts ENV $AWSCLI_CONFIG_FILE',
@@ -16,6 +15,5 @@ module AwsCli
       HELP
       help  #call help
     end
-
   end
 end
