@@ -22,7 +22,7 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('rdoc')
   s.add_development_dependency('aruba')
   s.add_runtime_dependency('thor', '>=0.17.0')
-  s.add_runtime_dependency('fog', '>=1.10.0')
+  s.add_runtime_dependency('fog', '>=1.16.0')
   s.add_runtime_dependency('multi_json')
   s.add_runtime_dependency('highline')
 

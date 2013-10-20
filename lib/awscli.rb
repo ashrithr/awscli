@@ -38,6 +38,7 @@ module AwsCli
   require 'awscli/cli/ec2/vpc/internet_gateways'
   require 'awscli/cli/ec2/vpc/dhcp'
   require 'awscli/cli/ec2/vpc/subnet'
+  require 'awscli/cli/ec2/vpc/route_tables'
     #S3
   require 'awscli/cli/s3'
   require 'awscli/cli/s3/files'

@@ -784,6 +784,56 @@ module Awscli
       end
     end # => Subnet
 
+    class RouteTable
+      def initialize(connection)
+        @conn = connection
+      end
+
+      def list(options)
+        if options[:route_table_id]
+          puts @conn.describe_route_tables('route-table-id' => options[:route_table_id].split(',')).body['routeTableSet'].to_yaml
+        else
+          Formatador.display_line("[green]#{@conn.describe_route_tables.body['routeTableSet'].map {|k| k['associationSet'].first}.map{|k| k['routeTableId']}}[/]")
+          puts "For more info on a specific route table pass route-table-id to '--route-table-id' or '-r' of `list` subcommand"
+        end
+      end
+
+      def create(options)
+        @conn.create_route_table(options[:vpc_id])
+        puts "Created route table"
+      end
+
+      def create_route(options)
+        @conn.create_route(
+          options[:route_table_id], 
+          options[:dest_cidr],
+          options[:gateway_id] || nil, 
+          options[:instance_id] || nil, 
+          options[:net_interface_id] || nil)
+        puts "Created specified route"
+      end
+
+      def delete(options)
+        @conn.delete_route_table(options[:route_table_id])
+        puts "Deleted route table with id #{options[:route_table_id]}"
+      end
+
+      def delete_route(options)
+        @conn.delete_route(options[:route_table_id], options[:dest_cidr])
+        puts "Deleted route from routetable: #{options[:route_table_id]} with destination cidr: #{options[:dest_cidr]}"
+      end
+
+      def associate_route_table(options)
+        @conn.associate_route_table(options[:route_table_id], options[:subnet_id])
+        puts "Associated route table: #{options[:route_table_id]} with subnet: #{options[:subnet_id]}"
+      end
+
+      def disassociate_route_table(options)
+        @conn.disassociate_route_table(options[:association_id])
+        puts "Disassociated route talbe with association_id: #{options[:association_id]}"
+      end
+    end # => RouteTable
+
     class NetworkAcl
       def initialize(connection)
         @conn = connection
