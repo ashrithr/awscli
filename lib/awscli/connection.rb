@@ -39,6 +39,7 @@ module Awscli
     def request_s3(region=nil)
       # => returns S3 connection object
       @config.merge!(:provider => 'AWS')
+      @config.merge!(:path_style => true)
       @config.reject!{ |key| key == 'region' } if @config['region']
       #parse optionally passing region
       if region
@@ -69,6 +70,18 @@ module Awscli
         Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@config['region']) if @config['region']
       end
       Fog::AWS::EMR.new(@config)
+    end
+
+    def request_cloudwatch(region=nil)
+      # => returns AWS CloudWatch object
+      if region
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(region)
+        @config.reject!{ |key| key == 'region' } if @config['region']
+        @config.merge!(:region => region)
+      else
+        Awscli::Errors.invalid_region unless Awscli::Instances::REGIONS.include?(@config['region']) if @config['region']
+      end
+      Fog::AWS::CloudWatch.new(@config)
     end
 
     def request_dynamo(region=nil)

@@ -18,7 +18,7 @@ module AwsCli
   # => first require cli so all subcommands can register
   require 'awscli/cli'
   # => register all subcommands
-    #EC2
+  # EC2
   require 'awscli/cli/ec2'
   require 'awscli/cli/ec2/instances'
   require 'awscli/cli/ec2/ami'
@@ -39,27 +39,27 @@ module AwsCli
   require 'awscli/cli/ec2/vpc/dhcp'
   require 'awscli/cli/ec2/vpc/subnet'
   require 'awscli/cli/ec2/vpc/route_tables'
-    #S3
+  # S3
   require 'awscli/cli/s3'
   require 'awscli/cli/s3/files'
   require 'awscli/cli/s3/directories'
-    #AS
+  # AS
   require 'awscli/cli/as'
   require 'awscli/cli/as/activities'
   require 'awscli/cli/as/configurations'
   require 'awscli/cli/as/groups'
   require 'awscli/cli/as/instances'
   require 'awscli/cli/as/policies'
-    #IAM
+  # IAM
   require 'awscli/cli/iam'
   require 'awscli/cli/iam/user'
   require 'awscli/cli/iam/group'
   require 'awscli/cli/iam/policies'
   require 'awscli/cli/iam/roles'
   require 'awscli/cli/iam/profiles'
-    #EMR
+  # EMR
   require 'awscli/cli/emr'
-    #Dynamo
+  # Dynamo
   require 'awscli/cli/dynamo'
   require 'awscli/cli/dynamo/table'
   require 'awscli/cli/dynamo/item'
